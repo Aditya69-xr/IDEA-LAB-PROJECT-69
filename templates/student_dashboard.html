@@ -1,0 +1,410 @@
+{% extends "base.html" %}
+
+{% block title %}Academics &amp; Attendance | DigiCampus JIET Idea Lab{% endblock %}
+
+{% block content %}
+<div class="container py-2">
+    <!-- Main DigiCampus Screen Wrapper -->
+    <div class="digi-screen-wrapper">
+        <!-- Top Coral Red Header Bar (DigiCampus Academics Header) -->
+        <div class="digi-top-bar">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="digi-top-title" id="digiHeaderTitle">
+                    <span id="backToAcademicsBtn" style="cursor: pointer; display: none;" onclick="switchDigiTab('academics')" title="Back to Current Term">
+                        <i class="fa-solid fa-arrow-left me-1"></i>
+                    </span>
+                    <span id="headerTitleText">Academics</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <img src="{{ url_for('static', filename=summary.photo_path) if summary.photo_path else 'https://ui-avatars.com/api/?name=' + summary.name + '&background=ffffff&color=ff4d4f' }}" 
+                         alt="{{ summary.name }}" 
+                         class="rounded-circle border border-2 border-white" 
+                         style="width: 32px; height: 32px; object-fit: cover;">
+                    <span class="badge bg-white text-danger fw-bold rounded-pill px-2 py-1" style="font-size: 0.72rem;">
+                        {{ summary.student_id }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Header Navigation Tabs -->
+            <div class="digi-tabs-nav" role="tablist">
+                <a class="digi-tab-link {{ 'active' if active_tab == 'academics' or not active_tab else '' }}" 
+                   id="tabLinkAcademics" 
+                   onclick="switchDigiTab('academics')" 
+                   role="tab" 
+                   aria-selected="{{ 'true' if active_tab == 'academics' else 'false' }}">
+                    Current Term
+                </a>
+                <a class="digi-tab-link {{ 'active' if active_tab == 'drilldown' else '' }}" 
+                   id="tabLinkDrilldown" 
+                   onclick="switchDigiTab('drilldown')" 
+                   role="tab" 
+                   aria-selected="{{ 'true' if active_tab == 'drilldown' else 'false' }}">
+                    Exploratory Project
+                </a>
+                <a class="digi-tab-link {{ 'active' if active_tab == 'exam' else '' }}" 
+                   id="tabLinkExam" 
+                   onclick="switchDigiTab('exam')" 
+                   role="tab" 
+                   aria-selected="{{ 'true' if active_tab == 'exam' else 'false' }}">
+                    Exam Results
+                </a>
+                <a class="digi-tab-link {{ 'active' if active_tab == 'profile' else '' }}" 
+                   id="tabLinkProfile" 
+                   onclick="switchDigiTab('profile')" 
+                   role="tab" 
+                   aria-selected="{{ 'true' if active_tab == 'profile' else 'false' }}">
+                    Profile &amp; Privacy
+                </a>
+            </div>
+        </div>
+
+        <!-- DigiCampus Screen Body -->
+        <div class="digi-screen-body">
+
+            <!-- ======================================================== -->
+            <!-- 1. ACADEMICS / CURRENT TERM SCREEN (EXACT REPLICA OF IMAGE 1) -->
+            <!-- ======================================================== -->
+            <div id="digiViewAcademics" class="digi-view-section" style="{{ 'display: block;' if active_tab == 'academics' or not active_tab else 'display: none;' }}">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="text-secondary small fw-semibold">
+                        <i class="fa-regular fa-calendar-days me-1 text-primary"></i> 2026-2027 Semester 1 Courses
+                    </div>
+                    <span class="badge bg-light text-secondary border px-3 py-1 rounded-pill small">
+                        Overall Attendance: <strong class="text-dark">{{ academics.overall_attendance_pct }}%</strong>
+                    </span>
+                </div>
+
+                <!-- Enrolled Course Cards Deck (Matching Image 1) -->
+                {% for course in academics.courses %}
+                    <div class="digi-course-card {{ 'clickable-card' if course.is_active_drilldown else '' }}"
+                         {% if course.is_active_drilldown %}onclick="switchDigiTab('drilldown')"{% endif %}
+                         title="{{ 'Tap to view session attendance drilldown' if course.is_active_drilldown else course.name }}">
+                        <!-- Course Title & Percentage Badge -->
+                        <div class="digi-course-header">
+                            <div>
+                                <div class="digi-course-name">
+                                    {{ course.name }}
+                                    {% if course.is_lab %}
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill ms-2" style="font-size: 0.7rem;">
+                                            <i class="fa-solid fa-microchip me-1"></i> IDEA Lab
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <div class="text-muted small">
+                                    {{ course.category }} • {{ course.faculty_name }}
+                                </div>
+                            </div>
+                            <div>
+                                <span class="digi-pct-badge {{ 'olive' if course.code == 'CS106' else '' }}">
+                                    {{ course.attendance_pct }}%
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar with End/Threshold Marker Dot -->
+                        <div class="digi-progress-track">
+                            <div class="digi-progress-bar {{ 'olive' if course.code == 'CS106' else '' }}" 
+                                 style="width: {{ course.attendance_pct }}%;"></div>
+                            <div class="digi-cutoff-dot" 
+                                 style="left: calc({{ course.min_pct }}% - 6px);" 
+                                 title="Minimum Required: {{ course.min_pct }}%"></div>
+                        </div>
+
+                        <!-- Sessions Attended / Held Subtext -->
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <div class="digi-sessions-text">
+                                {{ course.sessions_label }}
+                            </div>
+                            {% if course.is_active_drilldown %}
+                                <div class="small text-danger fw-semibold d-flex align-items-center gap-1">
+                                    <span>View Sessions</span> <i class="fa-solid fa-chevron-right fa-xs"></i>
+                                </div>
+                            {% else %}
+                                <div class="small text-muted">
+                                    Req: {{ course.min_pct }}%
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- ======================================================== -->
+            <!-- 2. COURSE DRILLDOWN SCREEN (EXACT REPLICA OF IMAGE 2) -->
+            <!-- ======================================================== -->
+            <div id="digiViewDrilldown" class="digi-view-section" style="{{ 'display: block;' if active_tab == 'drilldown' else 'display: none;' }}">
+                {% set drill = academics.lab_summary %}
+                
+                <!-- Component Attendance Card (Exact Image 2 Top Section) -->
+                <div class="digi-component-card">
+                    <div>
+                        <div class="digi-component-label">
+                            Component attendance <i class="fa-solid fa-circle-info" title="Cumulative percentage across all held practical sessions in IDEA Lab"></i>
+                        </div>
+                        <div class="digi-component-pct">
+                            {{ drill.attendance_pct }}%
+                        </div>
+                        <div class="digi-component-sub">
+                            {{ drill.total_attended }} of {{ drill.total_held }} attended
+                        </div>
+                    </div>
+                    <div>
+                        <div class="digi-check-gauge {{ '' if drill.is_eligible else 'danger' }}">
+                            {% if drill.is_eligible %}
+                                <i class="fa-solid fa-check"></i>
+                            {% else %}
+                                <i class="fa-solid fa-exclamation"></i>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Threshold Status Alert -->
+                {% if drill.is_eligible %}
+                    <div class="alert alert-success border-success-subtle py-2 px-3 small rounded-3 mb-3 d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-circle-check text-success fs-5"></i>
+                        <div>
+                            <strong>Qualified for Lab Credit:</strong> Your attendance is above the mandatory 50% threshold. You are in good standing!
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="alert alert-danger border-danger-subtle py-2 px-3 small rounded-3 mb-3 d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation text-danger fs-5"></i>
+                        <div>
+                            <strong>Attendance Shortage Alert:</strong> You are currently below 50%. You need to attend <strong>{{ drill.needed_sessions }}</strong> more upcoming lab sessions.
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Filter Pills Row (Exact Image 2 Filter Controls) -->
+                <div class="digi-filter-row" role="group" aria-label="DigiCampus Attendance Status Filter">
+                    <button type="button" class="digi-pill-btn active" onclick="filterDigiSessions('ALL', this)">
+                        ALL <span class="pill-badge ms-1">{{ drill.sessions|length }}</span>
+                    </button>
+                    <button type="button" class="digi-pill-btn pill-present" onclick="filterDigiSessions('PRESENT', this)">
+                        PRESENT (P) <span class="pill-badge ms-1">{{ drill.total_attended }}</span>
+                    </button>
+                    <button type="button" class="digi-pill-btn pill-absent" onclick="filterDigiSessions('ABSENT', this)">
+                        ABSENT (A) <span class="pill-badge ms-1">{{ drill.total_absent }}</span>
+                    </button>
+                    <button type="button" class="digi-pill-btn" onclick="filterDigiSessions('NOT_MARKED', this)">
+                        Not marked <span class="pill-badge ms-1">{{ drill.total_unmarked }}</span>
+                    </button>
+                </div>
+
+                <!-- Chronological Sessions List (Exact Image 2 Session List) -->
+                <div id="digiSessionsList">
+                    {% if drill and drill.sessions %}
+                        {% for sess in drill.sessions %}
+                            <div class="digi-session-item {{ 'status-present' if sess.status == 'PRESENT' else ('status-absent' if sess.status == 'ABSENT' else 'status-unmarked') }}"
+                                 data-status="{{ sess.status }}">
+                                <!-- Left Date & Time -->
+                                <div>
+                                    <div class="digi-session-time">
+                                        {{ sess.display_datetime }}
+                                    </div>
+                                    <div class="digi-session-meta">
+                                        <span><i class="fa-regular fa-clock me-1"></i> Slot {{ sess.slot_number }} ({{ sess.slot_time }})</span>
+                                        {% if sess.status == 'PRESENT' %}
+                                            <span class="text-success"><i class="fa-solid fa-camera me-1"></i> {{ sess.marked_via }}</span>
+                                        {% elif sess.status == 'ABSENT' %}
+                                            <span class="text-danger"><i class="fa-solid fa-user-xmark me-1"></i> {{ sess.admin_notes or 'Marked Absent' }}</span>
+                                        {% else %}
+                                            <span class="text-muted"><i class="fa-regular fa-hourglass-half me-1"></i> Upcoming</span>
+                                        {% endif %}
+                                        {% if sess.is_override %}
+                                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle" title="Authorized Dean/Admin Override">
+                                                <i class="fa-solid fa-lock-open me-1"></i> Override
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Right Status Badge (Exact Image 2 Pill Style) -->
+                                <div>
+                                    {% if sess.status == 'PRESENT' %}
+                                        <span class="digi-badge-status-present">
+                                            <i class="fa-solid fa-check"></i> PRESENT (P)
+                                        </span>
+                                    {% elif sess.status == 'ABSENT' %}
+                                        <span class="digi-badge-status-absent">
+                                            <i class="fa-solid fa-xmark"></i> ABSENT (A)
+                                        </span>
+                                    {% else %}
+                                        <span class="digi-badge-status-unmarked">
+                                            Not marked
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-5 text-muted">
+                            <i class="fa-regular fa-calendar-xmark fa-3x mb-2 d-block text-secondary"></i>
+                            No sessions found for Exploratory Project.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- ======================================================== -->
+            <!-- 3. EXAM RESULTS TAB -->
+            <!-- ======================================================== -->
+            <div id="digiViewExam" class="digi-view-section" style="{{ 'display: block;' if active_tab == 'exam' else 'display: none;' }}">
+                <div class="text-center py-4">
+                    <div class="mb-3">
+                        <span class="p-3 bg-primary-subtle text-primary rounded-circle d-inline-block">
+                            <i class="fa-solid fa-graduation-cap fa-2x"></i>
+                        </span>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-1">Term 1 Examination Overview</h5>
+                    <p class="text-secondary small mb-4">Official JIET Academic Governance Record</p>
+
+                    <div class="row g-3 text-start">
+                        <div class="col-sm-6">
+                            <div class="p-3 border rounded-3 bg-light">
+                                <div class="text-secondary small">Academic Standing</div>
+                                <div class="fw-bold text-success fs-5">Good Standing (Eligible)</div>
+                                <div class="text-muted small mt-1">Met required attendance quota in enrolled labs.</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="p-3 border rounded-3 bg-light">
+                                <div class="text-secondary small">Exploratory Project Lab Credits</div>
+                                <div class="fw-bold text-dark fs-5">2.0 / 2.0 Credits</div>
+                                <div class="text-muted small mt-1">Practical evaluation verified by Prof. Suresh Kumar.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ======================================================== -->
+            <!-- 4. BIOMETRIC PROFILE & PRIVACY TAB -->
+            <!-- ======================================================== -->
+            <div id="digiViewProfile" class="digi-view-section" style="{{ 'display: block;' if active_tab == 'profile' else 'display: none;' }}">
+                <div class="p-3 border rounded-3 mb-4">
+                    <div class="row align-items-center g-3">
+                        <div class="col-auto">
+                            <img src="{{ url_for('static', filename=summary.photo_path) if summary.photo_path else 'https://ui-avatars.com/api/?name=' + summary.name + '&background=e2e8f0&color=2563eb' }}" 
+                                 alt="{{ summary.name }}" 
+                                 class="rounded-circle border border-3 border-primary shadow-sm" 
+                                 style="width: 80px; height: 80px; object-fit: cover;">
+                        </div>
+                        <div class="col">
+                            <h5 class="fw-bold text-dark mb-0">{{ summary.name }}</h5>
+                            <code class="text-primary fw-bold">{{ summary.student_id }}</code>
+                            <div class="text-secondary small mt-1">
+                                <div><strong>Department:</strong> {{ summary.department }}</div>
+                                <div><strong>Email:</strong> {{ summary.email or 'N/A' }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3 border rounded-3 bg-light mb-3">
+                    <h6 class="fw-bold text-dark mb-2">
+                        <i class="fa-solid fa-shield-halved text-success me-1"></i> Biometric DPDP &amp; GDPR Compliance
+                    </h6>
+                    <p class="text-secondary small mb-3">
+                        Your facial recognition template is securely hashed using OpenCV Deep Neural Network embeddings (128-D vector) solely for automatic Idea Lab attendance tracking. No images are shared with commercial entities.
+                    </p>
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#dataDeletionModal">
+                        <i class="fa-solid fa-user-xmark me-1"></i> Request Complete Data Erasure (Right to be Forgotten)
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- GDPR / DPDP Data Deletion Modal -->
+<div class="modal fade" id="dataDeletionModal" tabindex="-1" aria-labelledby="dataDeletionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content modal-content-custom">
+            <div class="modal-header modal-header-custom">
+                <h5 class="modal-title fw-bold text-dark" id="dataDeletionModalLabel">
+                    <i class="fa-solid fa-shield-cat text-danger me-2"></i> Right to be Forgotten (Data Erasure)
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('student_request_deletion') }}">
+                <div class="modal-body p-4">
+                    <p class="text-secondary small">
+                        Under the Digital Personal Data Protection Act (DPDP) and GDPR, you have the statutory right to request permanent deletion of your facial biometric templates, photos, and attendance logs.
+                    </p>
+                    <div class="mb-3">
+                        <label for="deletionReason" class="form-label text-secondary small fw-semibold">Reason for Request (Optional)</label>
+                        <textarea class="form-control form-control-custom" id="deletionReason" name="reason" rows="3" placeholder="e.g. Completed semester, graduated, or withdrawing biometric consent..."></textarea>
+                    </div>
+                    <div class="alert alert-light border small py-2 mb-0">
+                        <i class="fa-solid fa-info-circle text-primary me-1"></i>
+                        The Idea Lab Data Protection Officer will process and permanently purge your biometric template within 48 hours.
+                    </div>
+                </div>
+                <div class="modal-footer modal-footer-custom">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Submit Erasure Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Tab switching controller
+    function switchDigiTab(tabName) {
+        // Hide all views
+        document.querySelectorAll('.digi-view-section').forEach(el => el.style.display = 'none');
+        // Deactivate all tab links
+        document.querySelectorAll('.digi-tab-link').forEach(el => el.classList.remove('active'));
+
+        const backBtn = document.getElementById('backToAcademicsBtn');
+        const headerTitle = document.getElementById('headerTitleText');
+
+        if (tabName === 'academics') {
+            document.getElementById('digiViewAcademics').style.display = 'block';
+            document.getElementById('tabLinkAcademics').classList.add('active');
+            backBtn.style.display = 'none';
+            headerTitle.innerText = 'Academics';
+        } else if (tabName === 'drilldown') {
+            document.getElementById('digiViewDrilldown').style.display = 'block';
+            document.getElementById('tabLinkDrilldown').classList.add('active');
+            backBtn.style.display = 'inline-block';
+            headerTitle.innerText = 'Exploratory Project';
+        } else if (tabName === 'exam') {
+            document.getElementById('digiViewExam').style.display = 'block';
+            document.getElementById('tabLinkExam').classList.add('active');
+            backBtn.style.display = 'inline-block';
+            headerTitle.innerText = 'Exam Results';
+        } else if (tabName === 'profile') {
+            document.getElementById('digiViewProfile').style.display = 'block';
+            document.getElementById('tabLinkProfile').classList.add('active');
+            backBtn.style.display = 'inline-block';
+            headerTitle.innerText = 'Profile & Privacy';
+        }
+    }
+
+    // Session filter pills controller (Matching Image 2)
+    function filterDigiSessions(status, btnElement) {
+        document.querySelectorAll('.digi-pill-btn').forEach(btn => btn.classList.remove('active'));
+        if (btnElement) {
+            btnElement.classList.add('active');
+        }
+
+        const items = document.querySelectorAll('.digi-session-item');
+        items.forEach(item => {
+            const itemStatus = item.getAttribute('data-status');
+            if (status === 'ALL' || itemStatus === status) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+</script>
+{% endblock %}

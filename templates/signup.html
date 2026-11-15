@@ -1,0 +1,369 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up &amp; Face Registration | SmartVision Idea Lab{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-9 col-xl-8">
+            <div class="sv-card p-4 p-md-5">
+                <div class="text-center mb-4">
+                    <div class="d-inline-flex align-items-center justify-content-center p-3 rounded-circle bg-dark border border-secondary mb-3 shadow">
+                        <i class="fa-solid fa-camera-rotate text-primary fa-2x" aria-hidden="true"></i>
+                    </div>
+                    <h3 class="fw-bold text-white mb-1">Create Account &amp; Enroll Face</h3>
+                    <p class="text-secondary small">
+                        First-time registration requires a one-time face biometric scan for automated attendance tracking at Idea Lab entrance.
+                    </p>
+                </div>
+
+                <!-- Role Selector Tabs -->
+                <div class="d-flex justify-content-center mb-4">
+                    <div class="btn-group p-1 bg-dark rounded-pill border border-secondary" role="group">
+                        <button type="button" class="btn btn-sm rounded-pill px-4 btn-primary-custom" id="roleBtnStudent" onclick="switchSignupRole('student')">
+                            <i class="fa-solid fa-user-graduate me-1"></i> Student Sign Up
+                        </button>
+                        <button type="button" class="btn btn-sm rounded-pill px-4 text-secondary" id="roleBtnAdmin" onclick="switchSignupRole('admin')">
+                            <i class="fa-solid fa-chalkboard-user me-1"></i> Teacher / Admin Sign Up
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Registration Form -->
+                <form id="signupForm" enctype="multipart/form-data">
+                    <input type="hidden" name="role" id="signupRole" value="student">
+
+                    <!-- Personal Information -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label for="fullName" class="form-label text-secondary small fw-semibold">Full Name *</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary text-secondary"><i class="fa-solid fa-user"></i></span>
+                                <input type="text" class="form-control form-control-custom" id="fullName" name="name" placeholder="e.g. Aditya Jain" required>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="regEmail" class="form-label text-secondary small fw-semibold">Official College Email *</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary text-secondary"><i class="fa-solid fa-envelope"></i></span>
+                                <input type="email" class="form-control form-control-custom" id="regEmail" name="email" placeholder="e.g. name@jietjodhpur.ac.in" required>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="studentId" class="form-label text-secondary small fw-semibold" id="idLabel">Student Roll No. / ID *</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary text-secondary"><i class="fa-solid fa-id-card"></i></span>
+                                <input type="text" class="form-control form-control-custom" id="studentId" name="student_id" placeholder="e.g. 26AI3482" required>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="department" class="form-label text-secondary small fw-semibold">Department / Branch *</label>
+                            <input type="text" class="form-control form-control-custom" id="department" name="department" placeholder="e.g. AI & Robotics (JIET)" required list="deptList">
+                            <datalist id="deptList">
+                                <option value="AI & Robotics (JIET)">
+                                <option value="Computer Science Engineering">
+                                <option value="Data Science & IoT">
+                                <option value="Electronics & Communication">
+                                <option value="Idea Lab Core Team">
+                            </datalist>
+                        </div>
+
+                        <!-- Password with Eye Toggle -->
+                        <div class="col-md-12">
+                            <label for="signupPassword" class="form-label text-secondary small fw-semibold">Create Password *</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary text-secondary"><i class="fa-solid fa-lock"></i></span>
+                                <input type="password" class="form-control form-control-custom" id="signupPassword" name="password" placeholder="Minimum 6 characters" minlength="6" required>
+                                <button type="button" class="btn btn-outline-secondary" onclick="togglePasswordVisibility('signupPassword', 'signupEyeIcon')" aria-label="Toggle password visibility">
+                                    <i id="signupEyeIcon" class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
+                            <small class="text-muted" style="font-size: 0.75rem;">Click the eye icon to view or hide your password.</small>
+                        </div>
+                    </div>
+
+                    <!-- Mandatory Face Biometric Scan Section -->
+                    <div class="p-3 bg-dark rounded-3 border border-secondary mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h6 class="fw-bold text-white mb-0">
+                                    <i class="fa-solid fa-camera text-primary me-2"></i> Mandatory Biometric Face Scan
+                                </h6>
+                                <small class="text-secondary">Face enrollment is mandatory during sign up for entrance camera attendance recognition.</small>
+                            </div>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle small">Step 2 of 2</span>
+                        </div>
+
+                        <!-- Tabs: Webcam vs Upload -->
+                        <ul class="nav nav-pills mb-3 gap-2" role="tablist">
+                            <li class="nav-item">
+                                <button class="nav-link active btn-sm rounded-pill px-3" id="tab-webcam" data-bs-toggle="pill" data-bs-target="#pane-webcam" type="button">
+                                    <i class="fa-solid fa-video me-1"></i> Live Webcam Scan
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link btn-sm rounded-pill px-3" id="tab-upload" data-bs-toggle="pill" data-bs-target="#pane-upload" type="button">
+                                    <i class="fa-solid fa-cloud-arrow-up me-1"></i> Upload Portrait Photo
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content mb-3">
+                            <!-- Live Webcam Pane -->
+                            <div class="tab-pane fade show active" id="pane-webcam">
+                                <div class="row g-3 align-items-center">
+                                    <div class="col-md-7">
+                                        <div class="video-wrapper position-relative text-center bg-black" style="min-height: 250px;">
+                                            <video id="signup-video" autoplay playsinline muted style="width: 100%; height: 250px; object-fit: cover; border-radius: 8px;"></video>
+                                            <canvas id="signup-canvas" style="display: none;"></canvas>
+                                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 140px; height: 170px; border: 2px dashed rgba(59, 130, 246, 0.8); border-radius: 50%; pointer-events: none;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-5 text-center">
+                                        <div class="mb-2">
+                                            <img id="signup-preview-img" src="https://placehold.co/120x120/1e293b/94a3b8?text=No+Face+Captured" 
+                                                 alt="Captured face preview"
+                                                 class="rounded-3 border border-secondary shadow" style="width: 110px; height: 110px; object-fit: cover;">
+                                        </div>
+                                        <div class="d-grid gap-2">
+                                            <button type="button" class="btn btn-sm btn-primary-custom" onclick="captureSignupPhoto()">
+                                                <i class="fa-solid fa-camera me-1"></i> Snap Face
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-info" onclick="captureSignupMultiBurst()">
+                                                <i class="fa-solid fa-layer-group me-1"></i> 5-Sample Burst Scan
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="grabMainLabCamera()">
+                                                <i class="fa-solid fa-desktop me-1"></i> Use Main Lab Camera
+                                            </button>
+                                        </div>
+                                        <div id="signup-scan-status" class="small text-muted mt-2">Position face in oval and click Snap</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Upload Pane -->
+                            <div class="tab-pane fade" id="pane-upload">
+                                <div class="p-3 border border-secondary border-dashed rounded-3 text-center bg-black">
+                                    <i class="fa-regular fa-image fa-2x text-secondary mb-2"></i>
+                                    <div>
+                                        <input class="form-control form-control-custom mx-auto" type="file" id="signupPhotoFile" name="photo" accept="image/jpeg,image/png" style="max-width: 350px;" onchange="previewSignupUpload(this)">
+                                        <small class="text-secondary d-block mt-1">Clear front-facing JPEG or PNG portrait.</small>
+                                    </div>
+                                    <div id="signup-upload-preview-box" class="d-none mt-2">
+                                        <img id="signup-upload-preview-img" src="" alt="Uploaded portrait preview" class="rounded-3 border border-primary" style="width: 100px; height: 100px; object-fit: cover;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Consent Checkbox -->
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="1" id="biometricConsent" name="biometric_consent" required checked>
+                            <label class="form-check-label text-secondary small" for="biometricConsent">
+                                I consent to on-premise biometric facial vector extraction for automated Idea Lab entrance attendance in accordance with the <a href="{{ url_for('privacy_page') }}" target="_blank" class="text-primary text-decoration-underline">Privacy Policy</a>.
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Hidden fields -->
+                    <input type="hidden" name="photo_mode" id="photo_mode" value="base64_snap">
+                    <input type="hidden" name="base64_image" id="base64_image">
+                    <div id="multi-samples-container"></div>
+
+                    <!-- Submit Button -->
+                    <div class="d-grid mb-3">
+                        <button type="submit" id="signupSubmitBtn" class="btn btn-primary-custom py-2 fs-6">
+                            <span id="signupBtnText"><i class="fa-solid fa-user-check me-2"></i> Complete Sign Up &amp; Enroll Face</span>
+                            <span id="signupBtnSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                        </button>
+                    </div>
+
+                    <div class="text-center text-secondary small">
+                        Already have an account? 
+                        <a href="{{ url_for('student_login_page') }}" class="text-primary fw-semibold text-decoration-underline ms-1">Sign In Here</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Password Eye Toggle Helper Function
+    function togglePasswordVisibility(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(iconId);
+        if (input.type === "password") {
+            input.type = "text";
+            icon.className = "fa-solid fa-eye-slash text-primary";
+        } else {
+            input.type = "password";
+            icon.className = "fa-solid fa-eye";
+        }
+    }
+
+    // Role switcher (Student vs Admin/Teacher)
+    function switchSignupRole(role) {
+        document.getElementById('signupRole').value = role;
+        const btnStu = document.getElementById('roleBtnStudent');
+        const btnAdm = document.getElementById('roleBtnAdmin');
+        const idLabel = document.getElementById('idLabel');
+        const idInput = document.getElementById('studentId');
+
+        if (role === 'admin') {
+            btnAdm.className = 'btn btn-sm rounded-pill px-4 btn-primary-custom';
+            btnStu.className = 'btn btn-sm rounded-pill px-4 text-secondary';
+            idLabel.innerText = "Teacher / Faculty ID *";
+            idInput.placeholder = "e.g. FAC-2026";
+        } else {
+            btnStu.className = 'btn btn-sm rounded-pill px-4 btn-primary-custom';
+            btnAdm.className = 'btn btn-sm rounded-pill px-4 text-secondary';
+            idLabel.innerText = "Student Roll No. / ID *";
+            idInput.placeholder = "e.g. 26AI3482";
+        }
+    }
+
+    // Camera setup for signup
+    let localStream = null;
+    const video = document.getElementById('signup-video');
+    const canvas = document.getElementById('signup-canvas');
+
+    async function initSignupWebcam() {
+        try {
+            localStream = await navigator.mediaDevices.getUserMedia({
+                video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }
+            });
+            video.srcObject = localStream;
+        } catch (err) {
+            console.warn("Local webcam access failed:", err);
+            document.getElementById('signup-scan-status').innerText = "Local webcam not accessible. Use 'Use Main Lab Camera' or upload portrait photo.";
+        }
+    }
+
+    function captureSignupPhoto() {
+        if (!video.videoWidth) {
+            alert("Webcam is not ready yet. Please wait or use photo upload.");
+            return;
+        }
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+        document.getElementById('signup-preview-img').src = dataUrl;
+        document.getElementById('base64_image').value = dataUrl;
+        document.getElementById('photo_mode').value = 'base64_snap';
+        document.getElementById('multi-samples-container').innerHTML = '';
+        document.getElementById('signup-scan-status').innerHTML = '<span class="text-success fw-bold"><i class="fa-solid fa-check"></i> Face captured successfully!</span>';
+    }
+
+    function grabMainLabCamera() {
+        document.getElementById('signup-scan-status').innerText = "Grabbing frame from main camera stream...";
+        document.getElementById('photo_mode').value = 'camera_snap';
+        document.getElementById('signup-preview-img').src = "{{ url_for('video_feed') }}?" + new Date().getTime();
+        document.getElementById('signup-scan-status').innerHTML = '<span class="text-success fw-bold"><i class="fa-solid fa-check"></i> Linked to Main Camera!</span>';
+    }
+
+    async function captureSignupMultiBurst() {
+        if (!video.videoWidth) {
+            alert("Webcam is not ready yet.");
+            return;
+        }
+        const container = document.getElementById('multi-samples-container');
+        container.innerHTML = '';
+        document.getElementById('photo_mode').value = 'multi_sample';
+
+        const statusEl = document.getElementById('signup-scan-status');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+
+        for (let i = 1; i <= 5; i++) {
+            statusEl.innerHTML = `<span class="text-info"><i class="fa-solid fa-spinner fa-spin"></i> Scanning angle ${i} of 5 (tilt slightly)...</span>`;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'samples[]';
+            input.value = dataUrl;
+            container.appendChild(input);
+
+            if (i === 1) document.getElementById('signup-preview-img').src = dataUrl;
+            await new Promise(r => setTimeout(r, 350));
+        }
+
+        statusEl.innerHTML = '<span class="text-success fw-bold"><i class="fa-solid fa-check-double"></i> 5 Face Angles Captured!</span>';
+    }
+
+    function previewSignupUpload(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('signup-upload-preview-img').src = e.target.result;
+                document.getElementById('signup-upload-preview-box').classList.remove('d-none');
+                document.getElementById('photo_mode').value = 'upload';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    document.getElementById('tab-upload').addEventListener('click', () => {
+        document.getElementById('photo_mode').value = 'upload';
+    });
+    document.getElementById('tab-webcam').addEventListener('click', () => {
+        document.getElementById('photo_mode').value = 'base64_snap';
+    });
+
+    // Sign up form submission
+    document.getElementById('signupForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const btn = document.getElementById('signupSubmitBtn');
+        const btnText = document.getElementById('signupBtnText');
+        const btnSpinner = document.getElementById('signupBtnSpinner');
+
+        btn.disabled = true;
+        btnText.classList.add('d-none');
+        btnSpinner.classList.remove('d-none');
+
+        const formData = new FormData(this);
+
+        fetch('/api/auth/signup', {
+            method: 'POST',
+            body: formData
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                window.svClient.playSuccessChime();
+                alert(data.message);
+                if (data.redirect_url) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    window.location.href = "{{ url_for('student_login_page') }}";
+                }
+            } else {
+                alert("Sign Up Error: " + data.message);
+                btn.disabled = false;
+                btnText.classList.remove('d-none');
+                btnSpinner.classList.add('d-none');
+            }
+        })
+        .catch(err => {
+            alert("Network error: " + err);
+            btn.disabled = false;
+            btnText.classList.remove('d-none');
+            btnSpinner.classList.add('d-none');
+        });
+    });
+
+    window.addEventListener('DOMContentLoaded', initSignupWebcam);
+</script>
+{% endblock %}

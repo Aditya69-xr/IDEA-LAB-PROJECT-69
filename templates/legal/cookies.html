@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Cookie Policy | SmartVision Idea Lab{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-9">
+            <div class="sv-card p-4 p-md-5">
+                <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom border-secondary">
+                    <div class="p-3 rounded-circle bg-dark border border-secondary text-warning">
+                        <i class="fa-solid fa-cookie-bite fa-2x" aria-hidden="true"></i>
+                    </div>
+                    <div>
+                        <h2 class="fw-bold text-white mb-0">Cookie &amp; Local Storage Policy</h2>
+                        <small class="text-secondary">Strictly essential cookies only • Zero third-party advertising trackers</small>
+                    </div>
+                </div>
+
+                <div class="text-secondary" style="line-height: 1.8;">
+                    <p class="lead text-white">
+                        SmartVision respects user privacy. We do not use advertising cookies, social media tracking pixels, or cross-site fingerprinting scripts.
+                    </p>
+
+                    <h5 class="fw-bold text-white mt-4"><i class="fa-solid fa-key text-primary me-2"></i> 1. Strictly Essential Cookies</h5>
+                    <p>
+                        These cookies are technically required for the security and fundamental operation of the web application:
+                    </p>
+                    <div class="table-responsive">
+                        <table class="table table-custom table-sm mb-3">
+                            <thead>
+                                <tr>
+                                    <th>Cookie Name</th>
+                                    <th>Type</th>
+                                    <th>Purpose</th>
+                                    <th>Lifespan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>session</code></td>
+                                    <td>Essential / Secure</td>
+                                    <td>Cryptographically signed session cookie maintaining user authentication and preventing CSRF attacks. Configured with <code>HttpOnly</code> and <code>SameSite=Lax</code>.</td>
+                                    <td>12 Hours / Browser Session</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h5 class="fw-bold text-white mt-4"><i class="fa-solid fa-database text-info me-2"></i> 2. Browser Local Storage</h5>
+                    <p>
+                        We utilize local browser storage (`localStorage`) strictly to remember your interface preferences on your device:
+                    </p>
+                    <ul>
+                        <li><code>sv_cookie_consent</code>: Stores your cookie banner acknowledgement.</li>
+                        <li><code>sv_audio_muted</code>: Stores your preference for entrance chime audio feedback.</li>
+                    </ul>
+
+                    <h5 class="fw-bold text-white mt-4"><i class="fa-solid fa-shield-halved text-success me-2"></i> 3. No Third-Party Tracking</h5>
+                    <p>
+                        SmartVision does not partner with ad networks or tracking brokers. All content security policies strictly block non-essential third-party connections.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

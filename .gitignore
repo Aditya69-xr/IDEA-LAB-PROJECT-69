@@ -1,0 +1,39 @@
+# Environment and Secrets
+.env
+*.env.local
+
+# Databases & data files
+*.db
+*.sqlite3
+data/*.db
+data/*.sqlite3
+data/*.db-wal
+data/*.db-shm
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# Uploaded member photos and snapshots (Sensitive Biometric Data)
+static/uploads/students/*
+!static/uploads/students/.gitkeep
+static/uploads/snapshots/*
+!static/uploads/snapshots/.gitkeep
+exports/*
+!exports/.gitkeep
+
+# IDE and OS files
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Temporary and test files
+data/test_face.jpg

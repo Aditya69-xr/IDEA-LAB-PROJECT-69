@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block title %}Settings &amp; Access Governance | SmartVision Idea Lab{% endblock %}
+
+{% block content %}
+<div class="container py-3">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <div class="sv-card p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary">
+                    <div>
+                        <h4 class="fw-bold mb-0 text-white">System Settings &amp; Access Governance</h4>
+                        <small class="text-secondary">Administrator access control, academic session calibration, and biometric thresholds</small>
+                    </div>
+                    <i class="fa-solid fa-sliders text-primary fa-2x" aria-hidden="true"></i>
+                </div>
+
+                <form method="POST" action="{{ url_for('api_save_settings') }}">
+                    <!-- Section 1: Academic College Attendance Rules -->
+                    <h5 class="fw-bold text-white mb-3">
+                        <i class="fa-solid fa-graduation-cap text-success me-2"></i> Academic Session &amp; College Applied Rules
+                    </h5>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label for="classesPerDay" class="form-label text-secondary small fw-semibold">Default Classes / Lab Periods Held Per Day</label>
+                            <input type="number" id="classesPerDay" name="classes_per_day" class="form-control form-control-custom" min="1" max="20" value="{{ settings.classes_per_day }}">
+                            <small class="text-secondary">e.g. 10 classes/periods per day as per standard college applied schedule.</small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="minRequiredPct" class="form-label text-secondary small fw-semibold">Mandatory Exam Qualification Threshold (%)</label>
+                            <input type="number" id="minRequiredPct" name="min_required_pct" class="form-control form-control-custom" min="50" max="95" step="0.5" value="{{ settings.min_required_pct }}">
+                            <small class="text-secondary">Students falling below this threshold (e.g. 75%) are flagged with shortage warnings.</small>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: AI Vision Calibration -->
+                    <h5 class="fw-bold text-white mb-3 pt-3 border-top border-secondary">
+                        <i class="fa-solid fa-brain text-info me-2"></i> Face Recognition Parameters
+                    </h5>
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between">
+                            <label for="confSlider" class="form-label text-secondary small fw-semibold">Cosine Similarity Threshold</label>
+                            <span class="text-primary fw-bold" id="confValueLabel">{{ settings.confidence_threshold }}</span>
+                        </div>
+                        <input type="range" class="form-range" name="confidence_threshold" id="confSlider" min="0.30" max="0.70" step="0.02" value="{{ settings.confidence_threshold }}" oninput="document.getElementById('confValueLabel').innerText = this.value">
+                        <div class="d-flex justify-content-between text-muted" style="font-size: 0.75rem;">
+                            <span>0.30 (Lenient)</span>
+                            <span>0.40 (Recommended Balanced)</span>
+                            <span>0.70 (Strict Matching)</span>
+                        </div>
+                        <small class="text-secondary mt-1 d-block">OpenCV SFace deep neural network benchmark match threshold is ~0.363. Setting to 0.40 provides high precision and prevents false matches.</small>
+                    </div>
+
+                    <!-- Section 3: Anti-Duplicate Attendance Rules -->
+                    <h5 class="fw-bold text-white mb-3 pt-3 border-top border-secondary">
+                        <i class="fa-solid fa-clock-rotate-left text-warning me-2"></i> Attendance Frequency Rules
+                    </h5>
+
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small fw-semibold">Duplicate Check Policy</label>
+                        <div class="d-flex gap-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="duplicate_rule" id="ruleCooldown" value="COOLDOWN" {{ 'checked' if settings.duplicate_rule == 'COOLDOWN' else '' }}>
+                                <label class="form-check-label text-white" for="ruleCooldown">
+                                    Cooldown Window Mode
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="duplicate_rule" id="ruleOnce" value="ONCE_A_DAY" {{ 'checked' if settings.duplicate_rule == 'ONCE_A_DAY' else '' }}>
+                                <label class="form-check-label text-white" for="ruleOnce">
+                                    Strict Once-a-Day Mode
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between">
+                            <label for="cooldownSlider" class="form-label text-secondary small fw-semibold">Cooldown Duration (Minutes)</label>
+                            <span class="text-warning fw-bold" id="cooldownValueLabel">{{ settings.cooldown_minutes }} mins</span>
+                        </div>
+                        <input type="range" class="form-range" name="cooldown_minutes" id="cooldownSlider" min="5" max="240" step="5" value="{{ settings.cooldown_minutes }}" oninput="document.getElementById('cooldownValueLabel').innerText = this.value + ' mins'">
+                        <small class="text-secondary d-block">Members cannot be marked again within this window. Arduino buzzer sounds a warning tone if they scan again during this period.</small>
+                    </div>
+
+                    <!-- Section 4: Camera Device Selection -->
+                    <h5 class="fw-bold text-white mb-3 pt-3 border-top border-secondary">
+                        <i class="fa-solid fa-video text-success me-2"></i> Camera Hardware Device
+                    </h5>
+
+                    <div class="mb-4">
+                        <label for="cameraIndexSelect" class="form-label text-secondary small fw-semibold">Video Capture Index</label>
+                        <select id="cameraIndexSelect" name="camera_index" class="form-select form-select-custom">
+                            <option value="0" {{ 'selected' if settings.camera_index == '0' else '' }}>Camera 0 (Default Laptop / Primary USB Webcam)</option>
+                            <option value="1" {{ 'selected' if settings.camera_index == '1' else '' }}>Camera 1 (Secondary External USB Camera)</option>
+                            <option value="2" {{ 'selected' if settings.camera_index == '2' else '' }}>Camera 2 (Additional Video In)</option>
+                        </select>
+                    </div>
+
+                    <!-- Save Button -->
+                    <div class="d-flex justify-content-end pt-3 border-top border-secondary">
+                        <button type="submit" class="btn btn-primary-custom px-4">
+                            <i class="fa-solid fa-floppy-disk me-1"></i> Save Configuration
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Authorized Administrators Governance Card -->
+            <div class="sv-card p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="fw-bold text-white mb-0">
+                            <i class="fa-solid fa-user-shield text-warning me-2"></i> Authorized Administrators
+                        </h5>
+                        <small class="text-secondary">Only these designated accounts have permission to access the admin command center.</small>
+                    </div>
+                    <button class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#newAdminModal">
+                        <i class="fa-solid fa-user-plus me-1"></i> Add Authorized Admin
+                    </button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-custom table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Full Name</th>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Provisioned Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for a in admins %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td class="fw-semibold text-white">{{ a.full_name }}</td>
+                                    <td><code class="text-warning">{{ a.username }}</code></td>
+                                    <td class="text-secondary">{{ a.email or 'N/A' }}</td>
+                                    <td class="text-muted small">{{ a.created_at[:10] if a.created_at else 'Active' }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- GDPR / DPDP Student Data Erasure Requests Card -->
+            <div class="sv-card p-4">
+                <h5 class="fw-bold text-white mb-2">
+                    <i class="fa-solid fa-shield-cat text-danger me-2"></i> Biometric Data Deletion Requests (Right to be Forgotten)
+                </h5>
+                <p class="text-secondary small mb-3">
+                    Under the DPDP Act 2023 and GDPR, student data deletion requests must be reviewed and purged upon request.
+                </p>
+
+                <div class="table-responsive">
+                    <table class="table table-custom table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Student Name</th>
+                                <th>Reason</th>
+                                <th>Requested At</th>
+                                <th>Status</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if deletion_requests %}
+                                {% for r in deletion_requests %}
+                                    <tr>
+                                        <td><code class="text-primary">{{ r.student_id }}</code></td>
+                                        <td class="text-white">{{ r.student_name }}</td>
+                                        <td class="text-secondary small">{{ r.reason }}</td>
+                                        <td class="text-muted small">{{ r.requested_at[:16] if r.requested_at else 'Recently' }}</td>
+                                        <td>
+                                            <span class="badge {{ 'bg-warning text-dark' if r.status == 'PENDING' else 'bg-success' }}">
+                                                {{ r.status }}
+                                            </span>
+                                        </td>
+                                        <td class="text-end">
+                                            {% if r.status == 'PENDING' %}
+                                                <form method="POST" action="{{ url_for('api_admin_purge_request') }}" class="d-inline" onsubmit="return confirm('Permanently wipe all biometric face templates, photos, and records for student {{ r.student_id }}?');">
+                                                    <input type="hidden" name="student_id" value="{{ r.student_id }}">
+                                                    <button type="submit" class="btn btn-sm btn-danger py-1 px-2">
+                                                        <i class="fa-solid fa-trash-can me-1"></i> Purge &amp; Delete
+                                                    </button>
+                                                </form>
+                                            {% else %}
+                                                <span class="text-muted small">Purged</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-3 text-muted small">
+                                        No pending student data deletion requests.
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Authorized Admin Modal -->
+<div class="modal fade" id="newAdminModal" tabindex="-1" aria-labelledby="newAdminModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content modal-content-custom">
+            <div class="modal-header modal-header-custom">
+                <h5 class="modal-title fw-bold text-white" id="newAdminModalLabel">
+                    <i class="fa-solid fa-user-shield text-warning me-2"></i> Add Authorized Administrator
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('api_create_admin') }}">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label for="adminFullName" class="form-label text-secondary small fw-semibold">Admin Full Name</label>
+                        <input type="text" class="form-control form-control-custom" id="adminFullName" name="full_name" placeholder="e.g. Prof. R. K. Gupta" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newAdminUsername" class="form-label text-secondary small fw-semibold">Username</label>
+                        <input type="text" class="form-control form-control-custom" id="newAdminUsername" name="username" placeholder="e.g. rkgupta" required autocomplete="username">
+                    </div>
+                    <div class="mb-3">
+                        <label for="adminEmail" class="form-label text-secondary small fw-semibold">Official Email</label>
+                        <input type="email" class="form-control form-control-custom" id="adminEmail" name="email" placeholder="rkgupta@college.edu">
+                    </div>
+                    <div class="mb-3">
+                        <label for="adminPass" class="form-label text-secondary small fw-semibold">Password (min 8 characters)</label>
+                        <input type="password" class="form-control form-control-custom" id="adminPass" name="password" minlength="8" placeholder="••••••••" required autocomplete="new-password">
+                    </div>
+                </div>
+                <div class="modal-footer modal-footer-custom">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary-custom">Authorize Administrator</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

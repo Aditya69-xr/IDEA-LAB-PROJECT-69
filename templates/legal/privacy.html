@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Biometric Privacy Policy | SmartVision Idea Lab{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-9">
+            <div class="sv-card p-4 p-md-5">
+                <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom border-secondary">
+                    <div class="p-3 rounded-circle bg-dark border border-secondary text-primary">
+                        <i class="fa-solid fa-shield-halved fa-2x" aria-hidden="true"></i>
+                    </div>
+                    <div>
+                        <h2 class="fw-bold text-white mb-0">Biometric Privacy Policy</h2>
+                        <small class="text-secondary">Compliant with the Digital Personal Data Protection (DPDP) Act 2023 &amp; GDPR</small>
+                    </div>
+                </div>
+
+                <div class="text-secondary" style="line-height: 1.8;">
+                    <p class="lead text-white">
+                        SmartVision is committed to the highest standards of data security, transparency, and personal privacy for all members, students, researchers, and faculty of the Idea Lab.
+                    </p>
+
+                    <h5 class="fw-bold text-white mt-4"><i class="fa-solid fa-camera text-primary me-2"></i> 1. What Data We Collect</h5>
+                    <p>
+                        SmartVision adheres strictly to the principle of <strong>Data Minimization</strong>. We collect only what is necessary to operate automated lab attendance:
+                    </p>
+                    <ul>
+                        <li><strong class="text-white">Full Name &amp; Student / Member ID:</strong> For academic credential identification.</li>
+                        <li><strong class="text-white">Department &amp; Role:</strong> To classify membership and generate lab reports.</li>
+                        <li><strong class="text-white">128-Dimensional Mathematical Face Embedding:</strong> When your photo is captured or uploaded, our deep neural network (SFace) transforms the image into an irreversible 128-float mathematical vector. Raw faces are processed into numerical embeddings.</li>
+                        <li><strong class="text-white">Check-in Timestamps &amp; Verification Snapshots:</strong> Date, time, and confidence score logged upon passing through the entrance camera.</li>
+                    </ul>
+
+                    <h5 class="fw-bold text-white mt-4"><i class="fa-solid fa-server text-info me-2"></i> 2. On-Premise Local Storage &amp; Zero Cloud Leaks</h5>
+                    <p>
+                        Unlike commercial cloud surveillance systems:
+                    </p>
+                    <ul>
+                        <li>All biometric vectors and attendance records are stored exclusively in an <strong>on-premise local SQLite database</strong> residing on the Idea Lab controller workstation.</li>
+                        <li>Your biometric embeddings are <strong>never sold, rented, monetized, or shared</strong> with third-party advertisers, cloud APIs, or analytics vendors.</li>
+                    </ul>
+
+                    <h5 class="fw-bold text-white mt-4"><i class="fa-solid fa-lock text-success me-2"></i> 3. Security Measures</h5>
+                    <p>
+                        We enforce multi-tiered defense against unauthorized access:
+                    </p>
+                    <ul>
+                        <li><strong class="text-white">Role-Based Access Control (RBAC):</strong> Only authorized administrators with cryptographically hashed passwords can access the central directory.</li>
+                        <li><strong class="text-white">Zero IDOR Isolation:</strong> Students logging in can strictly view <em>only their own</em> personal attendance record and cannot access other students' files.</li>
+                        <li><strong class="text-white">OWASP Defenses:</strong> Protected by rate-limiting against brute force, input sanitization against XSS/SQL injection, and secure HTTP session flags (`HttpOnly`, `SameSite=Lax`).</li>
+                    </ul>
+
+                    <h5 class="fw-bold text-white mt-4"><i class="fa-solid fa-user-xmark text-danger me-2"></i> 4. Right to be Forgotten (Data Erasure)</h5>
+                    <p>
+                        Under Section 12 of the DPDP Act and Article 17 of the GDPR, you have the fundamental right to withdraw consent and request total erasure of your biometric data at any time:
+                    </p>
+                    <ul>
+                        <li>Students may submit an instant erasure request directly through their <a href="{{ url_for('student_login_page') }}" class="text-primary text-decoration-underline">Student Portal</a>.</li>
+                        <li>Upon confirmation, all facial templates, enrolled portrait photos, and snapshot history are permanently purged from disk and database.</li>
+                    </ul>
+
+                    <h5 class="fw-bold text-white mt-4"><i class="fa-solid fa-id-card text-warning me-2"></i> 5. Grievance Redressal Officer</h5>
+                    <p>
+                        For any privacy inquiries or immediate data access/erasure requests, contact our designated Data Protection &amp; Grievance Redressal Officer:
+                    </p>
+                    <div class="p-3 bg-dark rounded border border-secondary text-white small">
+                        <strong>Dr. A. K. Sharma</strong> (Data Protection &amp; Lab Governance Officer)<br>
+                        Idea Lab Applied Technology Center, Block B, University Campus<br>
+                        Email: <a href="mailto:grievance-idealab@college.edu" class="text-primary">grievance-idealab@college.edu</a> • Phone: +91 11 2345 6789
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

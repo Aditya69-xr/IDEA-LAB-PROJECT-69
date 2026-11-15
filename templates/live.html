@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Live Kiosk | SmartVision Idea Lab{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-2" id="kiosk-container">
+    <!-- Top Kiosk Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex align-items-center gap-3">
+            <span class="pulse-dot"></span>
+            <div>
+                <h4 class="fw-bold mb-0 text-white">Idea Lab Entrance Attendance Kiosk</h4>
+                <small class="text-secondary">Face Recognition Station • Look into the camera</small>
+            </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="toggleFullScreen()">
+                <i class="fa-solid fa-expand me-1"></i> Fullscreen
+            </button>
+            <a href="{{ url_for('index') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Live Video Monitor Feed -->
+        <div class="col-lg-8">
+            <div class="video-wrapper position-relative">
+                <div class="video-overlay-pill">
+                    <span class="pulse-dot"></span>
+                    <span>AI LIVE ATTENDANCE MONITOR</span>
+                </div>
+                <img src="{{ url_for('video_feed') }}" class="video-stream" alt="Live Camera Feed" style="min-height: 480px;">
+                
+                <div class="position-absolute bottom-0 start-0 w-100 p-3" style="background: linear-gradient(transparent, rgba(11, 15, 25, 0.95));">
+                    <div class="d-flex justify-content-between align-items-center text-white small">
+                        <span><i class="fa-solid fa-shield-halved text-success me-1"></i> Anti-Proxy Protection Active</span>
+                        <span><i class="fa-solid fa-microchip text-primary me-1"></i> Edge AI ResNet SFace 128D</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side: Live Admissions & Activity -->
+        <div class="col-lg-4">
+            <!-- Last Recognized Spotlight -->
+            <div class="sv-card p-4 mb-4 text-center" id="spotlight-card">
+                <div class="text-secondary small fw-semibold text-uppercase tracking-wider mb-3">
+                    Latest Verification
+                </div>
+                <div class="position-relative d-inline-block mb-3">
+                    <img id="spotlight-avatar" src="https://ui-avatars.com/api/?name=Idea+Lab&background=1e293b&color=38bdf8" 
+                         alt="Latest verified member avatar"
+                         class="rounded-circle border border-3 border-primary shadow-lg" 
+                         style="width: 100px; height: 100px; object-fit: cover;">
+                    <span class="position-absolute bottom-0 end-0 bg-success text-white p-1 rounded-circle border border-2 border-dark" title="Verified">
+                        <i class="fa-solid fa-check fa-xs"></i>
+                    </span>
+                </div>
+                <h4 class="fw-bold text-white mb-1" id="spotlight-name">Ready for Detection</h4>
+                <div class="text-secondary small mb-2" id="spotlight-info">Step into camera view</div>
+                <div>
+                    <span class="badge-status-present" id="spotlight-status">SYSTEM READY</span>
+                </div>
+            </div>
+
+            <!-- Activity Stream -->
+            <div class="sv-card p-3">
+                <div class="d-flex justify-content-between align-items-center mb-3 px-2">
+                    <span class="fw-semibold text-white">Recent Entrances</span>
+                    <span class="text-secondary small"><i class="fa-solid fa-bolt text-warning me-1"></i> Live</span>
+                </div>
+                <div id="kiosk-feed-container" style="max-height: 280px; overflow-y: auto;">
+                    <!-- Dynamically populated by app.js -->
+                    <div class="text-center py-4 text-muted small">
+                        Awaiting student check-ins...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function toggleFullScreen() {
+        const elem = document.getElementById("kiosk-container") || document.documentElement;
+        if (!document.fullscreenElement) {
+            elem.requestFullscreen().catch(err => {
+                alert(`Error attempting to enable fullscreen: ${err.message}`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    }
+
+    // Intercept live events to update Spotlight card
+    const origHandler = window.svClient.handleLiveEventsUpdate.bind(window.svClient);
+    window.svClient.handleLiveEventsUpdate = function(data) {
+        origHandler(data);
+        if (data && data.events && data.events.length > 0) {
+            const latest = data.events[data.events.length - 1];
+            if (latest.type === 'MARKED_PRESENT' || latest.type === 'MANUAL_ENTRY') {
+                document.getElementById('spotlight-name').innerText = latest.student_name;
+                document.getElementById('spotlight-info').innerText = `${latest.student_id} • ${latest.department || 'Idea Lab'}`;
+                document.getElementById('spotlight-status').innerText = `MARKED PRESENT (${latest.time})`;
+                document.getElementById('spotlight-status').className = 'badge-status-present';
+                const avatar = document.getElementById('spotlight-avatar');
+                if (latest.snapshot_path) {
+                    avatar.src = `/static/${latest.snapshot_path}`;
+                } else {
+                    avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(latest.student_name)}&background=10b981&color=fff`;
+                }
+            } else if (latest.type === 'ALREADY_MARKED') {
+                document.getElementById('spotlight-name').innerText = latest.student_name;
+                document.getElementById('spotlight-info').innerText = `${latest.student_id} • ${latest.department || 'Idea Lab'}`;
+                document.getElementById('spotlight-status').innerText = `ALREADY LOGGED (${latest.time})`;
+                document.getElementById('spotlight-status').className = 'badge-status-sim';
+            }
+        }
+    };
+</script>
+{% endblock %}

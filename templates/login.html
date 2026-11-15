@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Administrator Login' if portal_type == 'admin' else 'Student Portal Login' }} | SmartVision{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="sv-card p-4 p-md-5">
+                <div class="text-center mb-4">
+                    <div class="d-inline-flex align-items-center justify-content-center p-3 rounded-circle bg-dark border border-secondary mb-3 shadow">
+                        {% if portal_type == 'admin' %}
+                            <i class="fa-solid fa-user-shield text-warning fa-2x" aria-hidden="true"></i>
+                        {% else %}
+                            <i class="fa-solid fa-user-graduate text-primary fa-2x" aria-hidden="true"></i>
+                        {% endif %}
+                    </div>
+                    <h3 class="fw-bold text-white mb-1">
+                        {{ 'Administrator Portal' if portal_type == 'admin' else 'Student Attendance Portal' }}
+                    </h3>
+                    <p class="text-secondary small">
+                        {{ 'Authorized personnel login for Idea Lab attendance governance.' if portal_type == 'admin' else 'Log in with your official College Email or Student ID to view your personal attendance rate.' }}
+                    </p>
+                </div>
+
+                <!-- Portal Switch Pills -->
+                <div class="d-flex justify-content-center mb-4">
+                    <div class="btn-group p-1 bg-dark rounded-pill border border-secondary" role="group">
+                        <a href="{{ url_for('student_login_page') }}" class="btn btn-sm rounded-pill px-3 {{ 'btn-primary-custom' if portal_type == 'student' else 'text-secondary' }}">
+                            <i class="fa-solid fa-graduation-cap me-1"></i> Student Login
+                        </a>
+                        <a href="{{ url_for('login_page') }}" class="btn btn-sm rounded-pill px-3 {{ 'btn-primary-custom' if portal_type == 'admin' else 'text-secondary' }}">
+                            <i class="fa-solid fa-shield me-1"></i> Admin Login
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Login Form -->
+                <form method="POST" action="{{ url_for('login_page') if portal_type == 'admin' else url_for('student_login_page') }}">
+                    {% if portal_type == 'admin' %}
+                        <div class="mb-3">
+                            <label for="adminUsername" class="form-label text-secondary small fw-semibold">Admin Username or Faculty Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary text-secondary"><i class="fa-solid fa-user"></i></span>
+                                <input type="text" class="form-control form-control-custom" id="adminUsername" name="username" placeholder="e.g. Sureshkumar_69@jietjodhpur.ac.in or admin" required autocomplete="username">
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="mb-3">
+                            <label for="studentId" class="form-label text-secondary small fw-semibold">College Email or Student ID</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary text-secondary"><i class="fa-solid fa-envelope"></i></span>
+                                <input type="text" class="form-control form-control-custom" id="studentId" name="student_id" placeholder="e.g. aditya.26ai3482@jietjodhpur.ac.in or 26AI3482" required autocomplete="username">
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Password with Eye Toggle -->
+                    <div class="mb-4">
+                        <label for="loginPassword" class="form-label text-secondary small fw-semibold">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary text-secondary"><i class="fa-solid fa-lock"></i></span>
+                            <input type="password" class="form-control form-control-custom" id="loginPassword" name="password" placeholder="••••••••" required autocomplete="current-password">
+                            <button type="button" class="btn btn-outline-secondary" onclick="togglePasswordVisibility('loginPassword', 'loginEyeIcon')" aria-label="Toggle password visibility">
+                                <i id="loginEyeIcon" class="fa-solid fa-eye text-secondary"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted" style="font-size: 0.75rem;">Click the eye icon to view or hide your password.</small>
+                    </div>
+
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-primary-custom py-2">
+                            <i class="fa-solid fa-arrow-right-to-bracket me-2"></i> Sign In to Portal
+                        </button>
+                    </div>
+
+                    <!-- Callout to Sign Up (Mandatory Face Scan for New Users) -->
+                    <div class="p-3 bg-dark rounded-3 border border-secondary text-center mb-3">
+                        <div class="small text-secondary mb-1">
+                            <i class="fa-solid fa-camera-rotate text-info me-1"></i> New to SmartVision Idea Lab?
+                        </div>
+                        <div class="small text-white mb-2">First-time registration requires a biometric face scan.</div>
+                        <a href="{{ url_for('signup_page') }}" class="btn btn-sm btn-outline-info rounded-pill px-3">
+                            <i class="fa-solid fa-user-plus me-1"></i> Sign Up &amp; Enroll Face
+                        </a>
+                    </div>
+
+                    <div class="text-center text-muted small">
+                        Protected by Rate Limiting &amp; Scrypt Biometric Vault.
+                        <br>
+                        <a href="{{ url_for('live_kiosk') }}" class="text-secondary text-decoration-none mt-2 d-inline-block">
+                            <i class="fa-solid fa-video me-1"></i> Open Entrance Kiosk
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function togglePasswordVisibility(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(iconId);
+        if (input.type === "password") {
+            input.type = "text";
+            icon.className = "fa-solid fa-eye-slash text-primary";
+        } else {
+            input.type = "password";
+            icon.className = "fa-solid fa-eye text-secondary";
+        }
+    }
+</script>
+{% endblock %}

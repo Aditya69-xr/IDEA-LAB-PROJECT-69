@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+
+{% block title %}Members Directory & Individual Attendance | SmartVision{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <h3 class="fw-bold mb-1 text-white">Registered Lab Members & Individual Attendance</h3>
+            <p class="text-secondary mb-0 small">Audit individual academic attendance rates, classes attended, and college 75% exam qualification status</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('register_page') }}" class="btn btn-primary-custom d-flex align-items-center gap-2">
+                <i class="fa-solid fa-user-plus" aria-hidden="true"></i> Enroll New Member
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter & Search Card -->
+    <div class="sv-card p-3 mb-4">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <input type="text" id="memberSearchInput" class="form-control form-control-custom" placeholder="Search by name, Student ID, or department..." onkeyup="filterMembersTable()" aria-label="Search members">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <select id="deptFilterSelect" class="form-select form-select-custom" onchange="filterMembersTable()" aria-label="Filter by department">
+                    <option value="">All Departments</option>
+                    {% for d in departments %}
+                        <option value="{{ d }}">{{ d }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 text-end text-secondary small">
+                Showing <strong class="text-white" id="displayedCount">{{ students|length }}</strong> active members
+            </div>
+        </div>
+    </div>
+
+    <!-- Members Table -->
+    <div class="sv-card overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-custom mb-0" id="membersTable">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">Photo</th>
+                        <th>Student ID</th>
+                        <th>Full Name</th>
+                        <th>Department</th>
+                        <th>Classes Attended</th>
+                        <th>Total Held</th>
+                        <th>Individual Rate %</th>
+                        <th>College Eligibility Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if students %}
+                        {% for s in students %}
+                            <tr class="member-row" data-name="{{ s.name|lower }}" data-id="{{ s.student_id|lower }}" data-dept="{{ s.department }}">
+                                <td>
+                                    <img src="{{ url_for('static', filename=s.photo_path) if s.photo_path else 'https://ui-avatars.com/api/?name=' + s.name + '&background=1e293b&color=fff' }}" 
+                                         alt="Biometric portrait of {{ s.name }}" 
+                                         class="rounded-circle border border-secondary" 
+                                         style="width: 44px; height: 44px; object-fit: cover;"
+                                         onerror="this.src='https://ui-avatars.com/api/?name={{ s.name }}&background=1e293b&color=fff'">
+                                </td>
+                                <td><code class="text-primary fw-bold">{{ s.student_id }}</code></td>
+                                <td class="fw-semibold text-white">{{ s.name }}</td>
+                                <td><span class="badge bg-dark border border-secondary text-secondary">{{ s.department }}</span></td>
+                                <td><strong class="text-success">{{ s.classes_attended }}</strong> classes</td>
+                                <td class="text-secondary">{{ s.total_classes_held }} classes</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="progress flex-grow-1 bg-dark border border-secondary" style="height: 6px; width: 70px;">
+                                            <div class="progress-bar {{ 'bg-success' if s.attendance_pct >= 75 else ('bg-warning' if s.attendance_pct >= 60 else 'bg-danger') }}" 
+                                                 style="width: {{ s.attendance_pct }}%;"></div>
+                                        </div>
+                                        <strong class="{{ 'text-success' if s.attendance_pct >= 75 else ('text-warning' if s.attendance_pct >= 60 else 'text-danger') }}">
+                                            {{ s.attendance_pct }}%
+                                        </strong>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="{{ s.status_badge }} small">
+                                        {{ s.status_label }}
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-outline-info me-1" onclick="viewMemberDetails('{{ s.student_id }}')" title="View History &amp; Profile" aria-label="View Profile">
+                                        <i class="fa-solid fa-chart-user"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteMember('{{ s.student_id }}', '{{ s.name }}')" title="Purge Member Data" aria-label="Purge Member Data">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="9" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-users-slash fa-3x mb-3 text-secondary opacity-50"></i>
+                                <p class="mb-1">No enrolled members in directory.</p>
+                                <a href="{{ url_for('register_page') }}" class="btn btn-sm btn-primary-custom mt-2">
+                                    <i class="fa-solid fa-user-plus me-1"></i> Enroll First Member
+                                </a>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Member Details & History Modal -->
+<div class="modal fade" id="memberModal" tabindex="-1" aria-labelledby="memberModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content modal-content-custom">
+            <div class="modal-header modal-header-custom">
+                <h5 class="modal-title fw-bold text-white" id="memberModalLabel">
+                    <i class="fa-solid fa-id-card text-primary me-2"></i> Individual Member Academic Performance
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4" id="memberModalBody">
+                <div class="text-center py-4">
+                    <span class="spinner-border text-primary" role="status"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function filterMembersTable() {
+        const query = document.getElementById('memberSearchInput').value.toLowerCase();
+        const dept = document.getElementById('deptFilterSelect').value;
+        const rows = document.querySelectorAll('.member-row');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const name = row.getAttribute('data-name');
+            const sid = row.getAttribute('data-id');
+            const rowDept = row.getAttribute('data-dept');
+
+            const matchesQuery = (!query || name.includes(query) || sid.includes(query) || (rowDept && rowDept.toLowerCase().includes(query)));
+            const matchesDept = (!dept || rowDept === dept);
+
+            if (matchesQuery && matchesDept) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        document.getElementById('displayedCount').innerText = visibleCount;
+    }
+
+    function viewMemberDetails(studentId) {
+        const modal = new bootstrap.Modal(document.getElementById('memberModal'));
+        modal.show();
+        const body = document.getElementById('memberModalBody');
+        body.innerHTML = '<div class="text-center py-4"><span class="spinner-border text-primary" role="status"></span></div>';
+
+        fetch(`/api/students/get/${studentId}`)
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success) {
+                    body.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+                    return;
+                }
+                const s = data.student;
+                const photoSrc = s.photo_path ? `/static/${s.photo_path}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(s.name)}&background=1e293b&color=fff`;
+
+                let historyHtml = '';
+                if (s.recent_records && s.recent_records.length > 0) {
+                    historyHtml = s.recent_records.map(a => `
+                        <tr>
+                            <td>${a.date}</td>
+                            <td>${a.time}</td>
+                            <td><span class="badge bg-primary">${a.classes_attended || 10} Classes</span></td>
+                            <td><span class="badge-status-present">${a.status}</span></td>
+                            <td>${Math.round((a.confidence || 1) * 100)}%</td>
+                            <td><small class="text-muted">${a.marked_via}</small></td>
+                        </tr>
+                    `).join('');
+                } else {
+                    historyHtml = `<tr><td colspan="6" class="text-center text-muted py-3">No attendance records on file.</td></tr>`;
+                }
+
+                body.innerHTML = `
+                    <div class="row g-4 align-items-center mb-4">
+                        <div class="col-sm-4 text-center">
+                            <img src="${photoSrc}" alt="Portrait of ${s.name}" class="rounded-circle border border-primary shadow" style="width: 110px; height: 110px; object-fit: cover;">
+                            <h5 class="fw-bold text-white mt-3 mb-0">${s.name}</h5>
+                            <code class="text-primary">${s.student_id}</code>
+                        </div>
+                        <div class="col-sm-8">
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <div class="p-2 bg-dark rounded border border-secondary text-center">
+                                        <small class="text-secondary d-block">Attended</small>
+                                        <strong class="text-success fs-5">${s.classes_attended} Classes</strong>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-2 bg-dark rounded border border-secondary text-center">
+                                        <small class="text-secondary d-block">Total Held</small>
+                                        <strong class="text-white fs-5">${s.total_classes_held} Classes</strong>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-2 bg-dark rounded border border-secondary text-center">
+                                        <small class="text-secondary d-block">Attendance Rate</small>
+                                        <strong class="${s.attendance_pct >= 75 ? 'text-success' : 'text-danger'} fs-5">${s.attendance_pct}%</strong>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-2 bg-dark rounded border border-secondary text-center">
+                                        <small class="text-secondary d-block">Status</small>
+                                        <span class="${s.status_badge} small">${s.status_category}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-secondary small">
+                                <div><strong>Department:</strong> ${s.department} • <strong>Role:</strong> ${s.role || 'Member'}</div>
+                                ${s.email ? `<div><strong>Email:</strong> ${s.email}</div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold text-white mb-2">Detailed Attendance Audit Log</h6>
+                    <div class="table-responsive" style="max-height: 220px; overflow-y: auto;">
+                        <table class="table table-custom table-sm mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Classes Credited</th>
+                                    <th>Status</th>
+                                    <th>Confidence</th>
+                                    <th>Source</th>
+                                </tr>
+                            </thead>
+                            <tbody>${historyHtml}</tbody>
+                        </table>
+                    </div>
+                `;
+            })
+            .catch(err => {
+                body.innerHTML = `<div class="alert alert-danger">Failed to load member profile: ${err}</div>`;
+            });
+    }
+
+    function deleteMember(studentId, name) {
+        if (!confirm(`Are you sure you want to completely erase member "${name}" (${studentId})? All facial biometric templates and attendance records will be purged.`)) {
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('student_id', studentId);
+
+        fetch('/api/students/delete', { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    alert(res.message);
+                    location.reload();
+                } else {
+                    alert("Error: " + res.message);
+                }
+            })
+            .catch(err => alert("Network error: " + err));
+    }
+</script>
+{% endblock %}

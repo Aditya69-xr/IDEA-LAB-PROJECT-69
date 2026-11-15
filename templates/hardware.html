@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+
+{% block title %}Hardware & Arduino IoT | SmartVision Idea Lab{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <h3 class="fw-bold mb-1 text-white">Hardware & Arduino IoT Telemetry</h3>
+            <p class="text-secondary mb-0 small">USB Serial communication controller for Green LED, Red LED, and Buzzer signals</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            {% if hw_status.is_connected %}
+                <span class="badge-status-connected py-2 px-3">
+                    <i class="fa-solid fa-circle text-primary me-1 fa-2xs"></i> Connected on {{ hw_status.port }} ({{ hw_status.baud_rate }} baud)
+                </span>
+            {% else %}
+                <span class="badge-status-sim py-2 px-3">
+                    <i class="fa-solid fa-bolt me-1"></i> Virtual Hardware Mode (Simulation)
+                </span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <!-- Left: Connection Manager & Diagnostic Controls -->
+        <div class="col-lg-6">
+            <!-- Port Connection Card -->
+            <div class="sv-card p-4 mb-4">
+                <h5 class="fw-bold text-white mb-3">
+                    <i class="fa-solid fa-plug text-primary me-2"></i> Serial Port Configuration
+                </h5>
+                <form id="serialConnectForm">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-7">
+                            <label class="form-label text-secondary small fw-semibold">Target COM / Serial Port</label>
+                            <div class="input-group">
+                                <select name="port" id="serialPortSelect" class="form-select form-select-custom">
+                                    <option value="AUTO" selected>AUTO (Detect Arduino)</option>
+                                    <option value="SIMULATION">SIMULATION (Virtual Hardware)</option>
+                                    {% for p in available_ports %}
+                                        <option value="{{ p.device }}">
+                                            {{ p.device }} - {{ p.description }} {{ '(Arduino detected!)' if p.is_arduino else '' }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <button type="button" class="btn btn-outline-secondary" onclick="scanComPorts()" title="Rescan Ports">
+                                    <i class="fa-solid fa-rotate"></i>
+                                </button>
+                            </div>
+                            <small class="text-muted">Auto-scans USB COM ports on Windows.</small>
+                        </div>
+
+                        <div class="col-md-5">
+                            <label class="form-label text-secondary small fw-semibold">Baud Rate</label>
+                            <select name="baud" id="baudRateSelect" class="form-select form-select-custom">
+                                <option value="9600" selected>9600 bps (Standard)</option>
+                                <option value="115200">115200 bps</option>
+                                <option value="57600">57600 bps</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary-custom flex-grow-1">
+                            <i class="fa-solid fa-link me-1"></i> Connect to Hardware
+                        </button>
+                        <button type="button" class="btn btn-outline-danger" onclick="disconnectHardware()">
+                            <i class="fa-solid fa-link-slash me-1"></i> Disconnect
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Interactive Diagnostic Test Controls -->
+            <div class="sv-card p-4">
+                <h5 class="fw-bold text-white mb-2">
+                    <i class="fa-solid fa-vial text-warning me-2"></i> Signal Test Bench
+                </h5>
+                <p class="text-secondary small mb-3">Click to send immediate diagnostic pulses to the physical board or virtual simulator:</p>
+
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <button class="btn btn-outline-success w-100 py-3 text-start d-flex align-items-center gap-3" onclick="triggerTest('test_green')">
+                            <div class="p-2 rounded bg-success-subtle text-success">
+                                <i class="fa-solid fa-lightbulb fa-lg"></i>
+                            </div>
+                            <div>
+                                <strong class="d-block text-white">Test Green LED</strong>
+                                <small class="text-secondary">Pin 12 • 1.0s Pulse</small>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <button class="btn btn-outline-danger w-100 py-3 text-start d-flex align-items-center gap-3" onclick="triggerTest('test_red')">
+                            <div class="p-2 rounded bg-danger-subtle text-danger">
+                                <i class="fa-solid fa-lightbulb fa-lg"></i>
+                            </div>
+                            <div>
+                                <strong class="d-block text-white">Test Red LED</strong>
+                                <small class="text-secondary">Pin 11 • 1.0s Pulse</small>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <button class="btn btn-outline-warning w-100 py-3 text-start d-flex align-items-center gap-3" onclick="triggerTest('test_buzzer')">
+                            <div class="p-2 rounded bg-warning-subtle text-warning">
+                                <i class="fa-solid fa-bell fa-lg"></i>
+                            </div>
+                            <div>
+                                <strong class="d-block text-white">Test Buzzer</strong>
+                                <small class="text-secondary">Pin 8 • Tone Beep</small>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <button class="btn btn-outline-info w-100 py-3 text-start d-flex align-items-center gap-3" onclick="triggerTest('ping')">
+                            <div class="p-2 rounded bg-info-subtle text-info">
+                                <i class="fa-solid fa-satellite-dish fa-lg"></i>
+                            </div>
+                            <div>
+                                <strong class="d-block text-white">Ping Handshake</strong>
+                                <small class="text-secondary">Echo Test (PONG)</small>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Live Terminal Console -->
+        <div class="col-lg-6">
+            <div class="sv-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-white mb-0">
+                        <i class="fa-solid fa-terminal text-info me-2"></i> Serial Transaction Console
+                    </h5>
+                    <span class="text-secondary small">Real-time TX / RX packets</span>
+                </div>
+
+                <div class="terminal-window" id="terminal-logs-window">
+                    {% for l in recent_logs %}
+                        <div class="terminal-line">
+                            <span class="text-muted">[{{ l.timestamp }}]</span>
+                            {% if l.status == 'SENT' %}
+                                <span class="terminal-tx">[{{ l.command }}]</span>
+                            {% elif l.status == 'SIMULATED' %}
+                                <span class="terminal-sim">[{{ l.command }}]</span>
+                            {% elif l.status == 'FAILED' %}
+                                <span class="terminal-err">[{{ l.command }}]</span>
+                            {% else %}
+                                <span class="terminal-rx">[{{ l.command }}]</span>
+                            {% endif %}
+                            {{ l.details or l.status }}
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="d-flex justify-content-between text-secondary small mt-2">
+                    <span>Legend: <span class="terminal-tx">TX (Sent)</span> • <span class="terminal-rx">RX (Received)</span> • <span class="terminal-sim">SIM (Virtual)</span></span>
+                    <button class="btn btn-link btn-sm text-secondary p-0 text-decoration-none" onclick="location.reload()">
+                        <i class="fa-solid fa-rotate-right me-1"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Circuit Wiring Guide Section -->
+    <div class="sv-card p-4">
+        <h5 class="fw-bold text-white mb-3">
+            <i class="fa-solid fa-microchip text-primary me-2"></i> Arduino Pinout & Circuit Schematic
+        </h5>
+        
+        <div class="row g-4 align-items-center">
+            <div class="col-lg-6">
+                <div class="p-3 bg-black rounded-3 border border-secondary font-monospace small text-light">
+<pre class="mb-0 text-info">
+  +------------------------------------------------+
+  |                  ARDUINO UNO                   |
+  |                                                |
+  |  [PIN 12] ──[ 220Ω Resistor ]──>|── (Green LED)|
+  |                                       │        |
+  |  [PIN 11] ──[ 220Ω Resistor ]──>|── (Red LED)  |
+  |                                       │        |
+  |  [PIN 8 ] ────────────────────────(+)─[ Buzzer]|
+  |                                       │        |
+  |  [ GND  ] <───────────────────────────┴────────|
+  +------------------------------------------------+
+</pre>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <h6 class="text-white fw-bold mb-2">Step-by-Step Setup Instructions:</h6>
+                <ol class="text-secondary small ps-3 mb-3">
+                    <li class="mb-1">Connect <strong>Green LED</strong> Anode (+) to <strong>Digital Pin 12</strong> through a 220Ω resistor.</li>
+                    <li class="mb-1">Connect <strong>Red LED</strong> Anode (+) to <strong>Digital Pin 11</strong> through a 220Ω resistor.</li>
+                    <li class="mb-1">Connect <strong>Buzzer (+)</strong> to <strong>Digital Pin 8</strong>.</li>
+                    <li class="mb-1">Connect all LED Cathodes (-) and Buzzer (-) to the common <strong>GND</strong> pin.</li>
+                    <li class="mb-1">Upload the provided sketch: <code class="text-primary">arduino/smartvision_arduino.ino</code> using Arduino IDE.</li>
+                    <li>Plug USB cable into laptop, select port above, and click <strong>Connect</strong>!</li>
+                </ol>
+                <div class="alert alert-dark border-secondary small mb-0 py-2">
+                    <i class="fa-solid fa-info-circle text-primary me-1"></i>
+                    <strong>No Arduino handy right now?</strong> No problem! The system automatically operates in Virtual Mode with visual indicators and web audio synthesis.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Scan available COM ports via API
+    function scanComPorts() {
+        fetch('/api/hardware/scan')
+            .then(r => r.json())
+            .then(data => {
+                const sel = document.getElementById('serialPortSelect');
+                sel.innerHTML = '<option value="AUTO" selected>AUTO (Detect Arduino)</option><option value="SIMULATION">SIMULATION (Virtual Hardware)</option>';
+                if (data.ports && data.ports.length > 0) {
+                    data.ports.forEach(p => {
+                        const opt = document.createElement('option');
+                        opt.value = p.device;
+                        opt.text = `${p.device} - ${p.description} ${p.is_arduino ? '(Arduino)' : ''}`;
+                        sel.appendChild(opt);
+                    });
+                    window.showLiveToast(`Found ${data.ports.length} serial port(s).`, "success");
+                } else {
+                    window.showLiveToast("No physical COM ports detected. Running in Virtual Mode.", "warning");
+                }
+            })
+            .catch(err => alert("Error scanning ports: " + err));
+    }
+
+    // Connect to port
+    document.getElementById('serialConnectForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        fetch('/api/hardware/connect', { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(res => {
+                window.showLiveToast(res.message, res.success ? "success" : "warning");
+                setTimeout(() => location.reload(), 1000);
+            })
+            .catch(err => alert("Connect error: " + err));
+    });
+
+    // Disconnect
+    function disconnectHardware() {
+        fetch('/api/hardware/disconnect', { method: 'POST' })
+            .then(r => r.json())
+            .then(res => {
+                window.showLiveToast(res.message, "warning");
+                setTimeout(() => location.reload(), 1000);
+            })
+            .catch(err => alert("Disconnect error: " + err));
+    }
+
+    // Trigger test bench commands
+    function triggerTest(action) {
+        const formData = new FormData();
+        formData.append('action', action);
+        fetch('/api/hardware/test', { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(res => {
+                if (action === 'test_buzzer') window.svClient.playSuccessChime();
+                window.showLiveToast(res.message, "success");
+            })
+            .catch(err => alert("Test command failed: " + err));
+    }
+</script>
+{% endblock %}

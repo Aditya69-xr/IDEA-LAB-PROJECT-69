@@ -1,0 +1,397 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Command Center | SmartVision AI Attendance{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Page Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <h3 class="fw-bold mb-1 text-white">Idea Lab Attendance Command Center</h3>
+            <p class="text-secondary mb-0 small">Edge AI biometric verification • Microcontroller IoT telemetry • Academic governance</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('live_kiosk') }}" class="btn btn-primary-custom d-flex align-items-center gap-2">
+                <i class="fa-solid fa-expand" aria-hidden="true"></i> Fullscreen Kiosk
+            </a>
+            <a href="{{ url_for('register_page') }}" class="btn btn-outline-light rounded-3 px-3 d-flex align-items-center gap-2">
+                <i class="fa-solid fa-user-plus" aria-hidden="true"></i> Enroll Member
+            </a>
+        </div>
+    </div>
+
+    <!-- KPI Metric Cards -->
+    <div class="row g-3 mb-4">
+        <!-- Card 1: Total Enrolled -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="kpi-card kpi-blue">
+                <i class="fa-solid fa-users kpi-icon text-primary" aria-hidden="true"></i>
+                <div class="kpi-title">Total Enrolled Members</div>
+                <div class="kpi-value text-white">{{ stats.total_students }}</div>
+                <div class="text-secondary small mt-1">Idea Lab active directory</div>
+            </div>
+        </div>
+
+        <!-- Card 2: Today's Present -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="kpi-card kpi-green">
+                <i class="fa-solid fa-user-check kpi-icon text-success" aria-hidden="true"></i>
+                <div class="kpi-title">Today's Attendance</div>
+                <div class="kpi-value text-success" id="stat-today-present">{{ stats.today_present }}</div>
+                <div class="text-secondary small mt-1">{{ stats.today_str }}</div>
+            </div>
+        </div>
+
+        <!-- Card 3: Today's Turnout % (Strictly bounded <= 100%) -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="kpi-card kpi-purple">
+                <i class="fa-solid fa-chart-line kpi-icon text-info" aria-hidden="true"></i>
+                <div class="kpi-title">Daily Turnout Rate</div>
+                <div class="kpi-value text-info">{{ stats.turnout_pct }}%</div>
+                <div class="text-secondary small mt-1">Present today vs enrolled</div>
+            </div>
+        </div>
+
+        <!-- Card 4: Hardware Controller -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="kpi-card kpi-amber">
+                <i class="fa-solid fa-microchip kpi-icon text-warning" aria-hidden="true"></i>
+                <div class="kpi-title">Hardware Telemetry</div>
+                <div class="kpi-value" style="font-size: 1.45rem;">
+                    {% if hw_status and hw_status.is_connected %}
+                        <span class="text-primary">{{ hw_status.port }}</span>
+                    {% else %}
+                        <span class="text-warning">Virtual Mode</span>
+                    {% endif %}
+                </div>
+                <div class="text-secondary small mt-1">
+                    <a href="{{ url_for('hardware_page') }}" class="text-warning text-decoration-none">
+                        Manage Arduino <i class="fa-solid fa-arrow-right fa-xs" aria-hidden="true"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="row g-4 mb-4">
+        <!-- Left: Live Video Monitor Box -->
+        <div class="col-lg-7">
+            <div class="sv-card h-100">
+                <div class="sv-card-header d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="pulse-dot"></span>
+                        <span class="fw-semibold text-white">Live Edge AI Stream</span>
+                    </div>
+                    <span class="badge bg-dark border border-secondary text-secondary small">
+                        YuNet + SFace (128D)
+                    </span>
+                </div>
+                <div class="p-3">
+                    <div class="video-wrapper mb-3">
+                        <div class="video-overlay-pill">
+                            <span class="pulse-dot"></span>
+                            <span>AI SCANNING ACTIVE</span>
+                        </div>
+                        <img src="{{ url_for('video_feed') }}" class="video-stream" alt="Live Camera Video Stream Feed">
+                    </div>
+
+                    <!-- Quick Action Bar -->
+                    <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center pt-2">
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('export_excel') }}" class="btn btn-sm btn-outline-success">
+                                <i class="fa-solid fa-file-excel me-1" aria-hidden="true"></i> Export Excel
+                            </a>
+                            <a href="{{ url_for('export_csv') }}" class="btn btn-sm btn-outline-light">
+                                <i class="fa-solid fa-file-csv me-1" aria-hidden="true"></i> Export CSV
+                            </a>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-warning" onclick="testHardwareBuzzer()">
+                                <i class="fa-solid fa-bell me-1" aria-hidden="true"></i> Test Buzzer
+                            </button>
+                            <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#manualAttModal">
+                                <i class="fa-solid fa-signature me-1" aria-hidden="true"></i> Manual Mark
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Recent Attendance Activity Feed -->
+        <div class="col-lg-5">
+            <div class="sv-card h-100">
+                <div class="sv-card-header d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold text-white">Today's Check-in Feed</span>
+                    <a href="{{ url_for('attendance_page') }}" class="text-primary small text-decoration-none">
+                        View All Logs <i class="fa-solid fa-chevron-right fa-xs" aria-hidden="true"></i>
+                    </a>
+                </div>
+                <div class="p-3">
+                    <div id="live-feed-container" style="max-height: 440px; overflow-y: auto;">
+                        {% if stats.recent_logs %}
+                            {% for log in stats.recent_logs %}
+                                <div class="feed-item">
+                                    <img src="{{ url_for('static', filename=log.snapshot_path) if log.snapshot_path else 'https://ui-avatars.com/api/?name=' + log.student_name + '&background=1e293b&color=fff' }}" 
+                                         alt="Check-in snapshot of {{ log.student_name }}"
+                                         class="feed-avatar" 
+                                         onerror="this.src='https://ui-avatars.com/api/?name={{ log.student_name }}&background=1e293b&color=fff'">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <strong class="text-white">{{ log.student_name }}</strong>
+                                            <span class="badge-status-present">PRESENT</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between text-muted small mt-1">
+                                            <span>{{ log.student_id }} • {{ log.department or 'Idea Lab' }}</span>
+                                            <span>{{ log.time }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-user-clock fa-3x mb-3 text-secondary opacity-50" aria-hidden="true"></i>
+                                <p class="mb-1">No attendance records logged yet today.</p>
+                                <small>Stand in front of the camera at the entrance to check in!</small>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- College Attendance Individual Breakdown Table -->
+    <div class="sv-card mb-4 overflow-hidden">
+        <div class="sv-card-header d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="fw-bold text-white mb-0">
+                    <i class="fa-solid fa-user-graduate text-primary me-2"></i> Individual Student Attendance Ledger
+                </h5>
+                <small class="text-secondary">Real-world academic session tracking • College 75% exam qualification status</small>
+            </div>
+            <a href="{{ url_for('students') }}" class="btn btn-sm btn-outline-primary">
+                View Full Directory <i class="fa-solid fa-arrow-right ms-1"></i>
+            </a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-custom mb-0">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Student ID</th>
+                        <th>Department</th>
+                        <th>Classes Attended</th>
+                        <th>Total Classes Held</th>
+                        <th>Attendance Rate %</th>
+                        <th>Eligibility Status</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if stats.all_summaries %}
+                        {% for s in stats.all_summaries %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="{{ url_for('static', filename=s.photo_path) if s.photo_path else 'https://ui-avatars.com/api/?name=' + s.name + '&background=1e293b&color=fff' }}" 
+                                             alt="Portrait of {{ s.name }}" 
+                                             class="rounded-circle border border-secondary" 
+                                             style="width: 36px; height: 36px; object-fit: cover;">
+                                        <span class="fw-semibold text-white">{{ s.name }}</span>
+                                    </div>
+                                </td>
+                                <td><code class="text-primary fw-bold">{{ s.student_id }}</code></td>
+                                <td><span class="badge bg-dark border border-secondary text-secondary">{{ s.department }}</span></td>
+                                <td><strong class="text-success">{{ s.classes_attended }}</strong> classes</td>
+                                <td>{{ s.total_classes_held }} classes</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="progress flex-grow-1 bg-dark border border-secondary" style="height: 6px; width: 70px;">
+                                            <div class="progress-bar {{ 'bg-success' if s.attendance_pct >= 75 else ('bg-warning' if s.attendance_pct >= 60 else 'bg-danger') }}" 
+                                                 style="width: {{ s.attendance_pct }}%;"></div>
+                                        </div>
+                                        <strong class="{{ 'text-success' if s.attendance_pct >= 75 else ('text-warning' if s.attendance_pct >= 60 else 'text-danger') }}">
+                                            {{ s.attendance_pct }}%
+                                        </strong>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="{{ s.status_badge }} small">
+                                        {{ s.status_label }}
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <a href="{{ url_for('students') }}" class="btn btn-sm btn-outline-info">
+                                        <i class="fa-solid fa-eye"></i> Details
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">
+                                No registered students found in directory.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Analytics Charts Row -->
+    <div class="row g-4">
+        <!-- Hourly Flow Chart -->
+        <div class="col-lg-8">
+            <div class="sv-card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0 text-white">Hourly Attendance Flow</h5>
+                    <span class="text-secondary small">Entrance traffic timeline</span>
+                </div>
+                <div style="height: 250px;">
+                    <canvas id="hourlyChart" aria-label="Hourly attendance bar chart" role="img"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Department Breakdown Chart -->
+        <div class="col-lg-4">
+            <div class="sv-card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0 text-white">By Department</h5>
+                    <span class="text-secondary small">Distribution</span>
+                </div>
+                <div style="height: 250px; position: relative;">
+                    <canvas id="deptChart" aria-label="Department attendance distribution doughnut chart" role="img"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Manual Attendance Modal -->
+<div class="modal fade" id="manualAttModal" tabindex="-1" aria-labelledby="manualAttModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content modal-content-custom">
+            <div class="modal-header modal-header-custom">
+                <h5 class="modal-title fw-bold text-white" id="manualAttModalLabel">
+                    <i class="fa-solid fa-signature text-primary me-2"></i> Manual Attendance Override
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="manualAttForm">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label for="manualStudentId" class="form-label text-secondary small">Member / Student ID</label>
+                        <input type="text" id="manualStudentId" name="student_id" class="form-control form-control-custom" placeholder="e.g. IL-2026-001" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="manualNote" class="form-label text-secondary small">Reason / Note</label>
+                        <input type="text" id="manualNote" name="note" class="form-control form-control-custom" value="Manual check-in verified by admin" required>
+                    </div>
+                </div>
+                <div class="modal-footer modal-footer-custom">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary-custom">Mark Present</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const hourlyLabels = {{ stats.hourly_labels | tojson }};
+    const hourlyData = {{ stats.hourly_data | tojson }};
+
+    const ctxHourly = document.getElementById('hourlyChart').getContext('2d');
+    new Chart(ctxHourly, {
+        type: 'bar',
+        data: {
+            labels: hourlyLabels,
+            datasets: [{
+                label: 'Check-ins',
+                data: hourlyData,
+                backgroundColor: 'rgba(59, 130, 246, 0.75)',
+                borderColor: '#3b82f6',
+                borderWidth: 1,
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: {
+                    grid: { color: 'rgba(0, 0, 0, 0.06)' },
+                    ticks: { color: '#64748b' }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1, color: '#64748b' },
+                    grid: { color: 'rgba(0, 0, 0, 0.06)' }
+                }
+            }
+        }
+    });
+
+    const deptStats = {{ stats.dept_stats | tojson }};
+    const deptLabels = deptStats.map(d => d.department || 'General');
+    const deptData = deptStats.map(d => d.present_today);
+
+    const ctxDept = document.getElementById('deptChart').getContext('2d');
+    new Chart(ctxDept, {
+        type: 'doughnut',
+        data: {
+            labels: deptLabels.length > 0 ? deptLabels : ['Enrolled'],
+            datasets: [{
+                data: deptData.length > 0 ? deptData : [1],
+                backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#475569', font: { size: 11 } } }
+            },
+            cutout: '70%'
+        }
+    });
+
+    function testHardwareBuzzer() {
+        const formData = new FormData();
+        formData.append('action', 'test_buzzer');
+        fetch('/api/hardware/test', { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(res => {
+                window.svClient.playSuccessChime();
+                window.showLiveToast(res.message || "Buzzer Test Sent!", "success");
+            })
+            .catch(() => window.showLiveToast("Error sending test command", "danger"));
+    }
+
+    document.getElementById('manualAttForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        fetch('/api/attendance/manual', { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    window.showLiveToast(data.message, "success");
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('manualAttModal'));
+                    modal.hide();
+                    setTimeout(() => location.reload(), 1200);
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(err => alert("Network error: " + err));
+    });
+</script>
+{% endblock %}

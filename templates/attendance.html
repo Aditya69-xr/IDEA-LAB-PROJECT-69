@@ -1,0 +1,596 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance Records &amp; Class Credit | SmartVision Idea Lab{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <h3 class="fw-bold mb-1 text-white">Attendance Logs &amp; Class Credit Ledger</h3>
+            <p class="text-secondary mb-0 small">Audit trail of daily class attendance, period credits, and individual student session logs</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <button class="btn btn-outline-warning d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#adjustClassesModal">
+                <i class="fa-solid fa-sliders" aria-hidden="true"></i> Credit Classes (e.g. 7/10)
+            </button>
+            <button class="btn btn-outline-info d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#manualEntryModal">
+                <i class="fa-solid fa-signature" aria-hidden="true"></i> Manual Check-in
+            </button>
+            <a href="{{ url_for('export_excel', date=date_filter, department=dept_filter, status=status_filter) }}" class="btn btn-outline-success d-flex align-items-center gap-2">
+                <i class="fa-solid fa-file-excel" aria-hidden="true"></i> Export Excel (.xlsx)
+            </a>
+            <a href="{{ url_for('export_csv', date=date_filter, department=dept_filter, status=status_filter) }}" class="btn btn-outline-light d-flex align-items-center gap-2">
+                <i class="fa-solid fa-file-csv" aria-hidden="true"></i> Export CSV
+            </a>
+        </div>
+    </div>
+
+    <!-- 1. IDEA LAB 2-SLOT CLASS SESSION ATTENDANCE LEDGER (User Request) -->
+    <div class="sv-card p-4 mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-3">
+            <div>
+                <h5 class="fw-bold text-white mb-1">
+                    <i class="fa-solid fa-chalkboard-user text-primary me-2"></i> Exploratory Project: 2-Slot Lab Attendance Manager
+                </h5>
+                <p class="text-secondary small mb-0">
+                    2 lab classes per scheduled date (Slot 1: 01:20 PM, Slot 2: 02:10 PM). Edits permitted only until 6:00 PM on class date.
+                </p>
+            </div>
+
+            <!-- Date Selector Dropdown -->
+            <div class="d-flex align-items-center gap-2">
+                <label for="labDateSelect" class="form-label text-secondary small fw-semibold mb-0">Class Date:</label>
+                <select id="labDateSelect" class="form-select form-select-custom form-select-sm" style="min-width: 170px;" onchange="changeLabDate(this.value)">
+                    {% for d in lab_matrix.dates %}
+                        <option value="{{ d }}" {{ 'selected' if lab_matrix.selected_date == d else '' }}>
+                            {{ d }} {% if d == lab_matrix.selected_date %}(Selected){% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- 6:00 PM Lock Status Alert Banner -->
+        <div class="p-3 rounded-3 border mb-3 {{ 'bg-warning-subtle border-warning-subtle text-warning' if lab_matrix.is_locked else 'bg-success-subtle border-success-subtle text-success' }}">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    {% if lab_matrix.is_locked %}
+                        <i class="fa-solid fa-lock fa-lg text-danger"></i>
+                        <div>
+                            <strong class="text-danger">Attendance Record Locked (6:00 PM Cutoff Passed):</strong>
+                            <span class="text-secondary small d-block">{{ lab_matrix.lock_msg }}</span>
+                        </div>
+                    {% else %}
+                        <i class="fa-solid fa-lock-open fa-lg text-success"></i>
+                        <div>
+                            <strong class="text-success">Daily Attendance Edit Window Active:</strong>
+                            <span class="text-secondary small d-block">{{ lab_matrix.lock_msg }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+
+                {% if lab_matrix.is_locked %}
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="openOverrideModal('', '', '', 'UNLOCK_ALL')">
+                        <i class="fa-solid fa-key me-1"></i> Authorize Admin Override
+                    </button>
+                {% else %}
+                    <span class="badge bg-success text-white px-3 py-2 rounded-pill small">
+                        <i class="fa-solid fa-bolt me-1"></i> Live Edits Enabled
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Bulk Actions & Camera Scanner Jump -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 p-3 bg-light rounded-3 border gap-2">
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <span class="text-secondary small fw-semibold me-1"><i class="fa-solid fa-bolt text-warning"></i> Faculty 1-Click Batch:</span>
+                <button type="button" class="btn btn-sm btn-outline-success d-flex align-items-center gap-1" onclick="bulkMarkSlot(1, 'PRESENT')">
+                    <i class="fa-solid fa-check-double"></i> Mark All Slot 1 (01:20 PM) Present
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-success d-flex align-items-center gap-1" onclick="bulkMarkSlot(2, 'PRESENT')">
+                    <i class="fa-solid fa-check-double"></i> Mark All Slot 2 (02:10 PM) Present
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1" onclick="bulkMarkSlot(1, 'ABSENT')">
+                    <i class="fa-solid fa-user-xmark"></i> Mark All Slot 1 Absent
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" onclick="bulkMarkSlot(1, 'NOT_MARKED')">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
+                </button>
+            </div>
+            <div>
+                <a href="{{ url_for('live_kiosk') }}" target="_blank" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1">
+                    <i class="fa-solid fa-camera"></i> Open AI Entrance Camera
+                </a>
+            </div>
+        </div>
+
+        <!-- Student Matrix Table -->
+        <div class="table-responsive">
+            <table class="table table-custom mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">Photo</th>
+                        <th>Member Name</th>
+                        <th>Roll No. / ID</th>
+                        <th>Department</th>
+                        <th style="min-width: 220px;">
+                            Slot 1 (01:20 PM - 02:10 PM)
+                        </th>
+                        <th style="min-width: 220px;">
+                            Slot 2 (02:10 PM - 03:00 PM)
+                        </th>
+                        <th class="text-end">Lab Attendance %</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in lab_matrix.students %}
+                        <tr id="row-{{ s.student_id }}">
+                            <td>
+                                <img src="{{ url_for('static', filename=s.photo_path) if s.photo_path else 'https://ui-avatars.com/api/?name=' + s.name + '&background=e2e8f0&color=2563eb' }}" 
+                                     alt="{{ s.name }}" 
+                                     class="rounded-circle border border-secondary" 
+                                     style="width: 40px; height: 40px; object-fit: cover;">
+                            </td>
+                            <td>
+                                <div class="fw-bold text-white">{{ s.name }}</div>
+                            </td>
+                            <td><code class="text-primary fw-bold">{{ s.student_id }}</code></td>
+                            <td><span class="badge bg-dark border border-secondary text-secondary">{{ s.department }}</span></td>
+
+                            <!-- Slot 1 -->
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span id="badge-{{ s.student_id }}-1" class="{{ 'badge-present-pill' if s.slot1.status == 'PRESENT' else ('badge-absent-pill' if s.slot1.status == 'ABSENT' else 'badge-unmarked-pill') }}">
+                                        {% if s.slot1.status == 'PRESENT' %}
+                                            <i class="fa-solid fa-check"></i> PRESENT (P)
+                                        {% elif s.slot1.status == 'ABSENT' %}
+                                            <i class="fa-solid fa-xmark"></i> ABSENT (A)
+                                        {% else %}
+                                            Not marked
+                                        {% endif %}
+                                    </span>
+                                    <div class="btn-group btn-group-sm roster-btn-group" role="group">
+                                        <button type="button" id="btn-{{ s.student_id }}-1-P" class="btn btn-outline-success btn-sm btn-present {{ 'active' if s.slot1.status == 'PRESENT' else '' }}" onclick="toggleSlot('{{ s.student_id }}', '{{ lab_matrix.selected_date }}', 1, 'PRESENT', {{ 'true' if lab_matrix.is_locked else 'false' }})" title="Mark Present">P</button>
+                                        <button type="button" id="btn-{{ s.student_id }}-1-A" class="btn btn-outline-danger btn-sm btn-absent {{ 'active' if s.slot1.status == 'ABSENT' else '' }}" onclick="toggleSlot('{{ s.student_id }}', '{{ lab_matrix.selected_date }}', 1, 'ABSENT', {{ 'true' if lab_matrix.is_locked else 'false' }})" title="Mark Absent">A</button>
+                                        <button type="button" id="btn-{{ s.student_id }}-1-N" class="btn btn-outline-secondary btn-sm btn-unmarked {{ 'active' if s.slot1.status == 'NOT_MARKED' else '' }}" onclick="toggleSlot('{{ s.student_id }}', '{{ lab_matrix.selected_date }}', 1, 'NOT_MARKED', {{ 'true' if lab_matrix.is_locked else 'false' }})" title="Clear">×</button>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <!-- Slot 2 -->
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span id="badge-{{ s.student_id }}-2" class="{{ 'badge-present-pill' if s.slot2.status == 'PRESENT' else ('badge-absent-pill' if s.slot2.status == 'ABSENT' else 'badge-unmarked-pill') }}">
+                                        {% if s.slot2.status == 'PRESENT' %}
+                                            <i class="fa-solid fa-check"></i> PRESENT (P)
+                                        {% elif s.slot2.status == 'ABSENT' %}
+                                            <i class="fa-solid fa-xmark"></i> ABSENT (A)
+                                        {% else %}
+                                            Not marked
+                                        {% endif %}
+                                    </span>
+                                    <div class="btn-group btn-group-sm roster-btn-group" role="group">
+                                        <button type="button" id="btn-{{ s.student_id }}-2-P" class="btn btn-outline-success btn-sm btn-present {{ 'active' if s.slot2.status == 'PRESENT' else '' }}" onclick="toggleSlot('{{ s.student_id }}', '{{ lab_matrix.selected_date }}', 2, 'PRESENT', {{ 'true' if lab_matrix.is_locked else 'false' }})" title="Mark Present">P</button>
+                                        <button type="button" id="btn-{{ s.student_id }}-2-A" class="btn btn-outline-danger btn-sm btn-absent {{ 'active' if s.slot2.status == 'ABSENT' else '' }}" onclick="toggleSlot('{{ s.student_id }}', '{{ lab_matrix.selected_date }}', 2, 'ABSENT', {{ 'true' if lab_matrix.is_locked else 'false' }})" title="Mark Absent">A</button>
+                                        <button type="button" id="btn-{{ s.student_id }}-2-N" class="btn btn-outline-secondary btn-sm btn-unmarked {{ 'active' if s.slot2.status == 'NOT_MARKED' else '' }}" onclick="toggleSlot('{{ s.student_id }}', '{{ lab_matrix.selected_date }}', 2, 'NOT_MARKED', {{ 'true' if lab_matrix.is_locked else 'false' }})" title="Clear">×</button>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <!-- Overall Lab Rate -->
+                            <td class="text-end">
+                                <span class="badge {{ 'bg-success text-white' if s.overall_pct >= 50 else 'bg-danger text-white' }} px-3 py-2 rounded-pill fs-6">
+                                    {{ s.overall_pct }}%
+                                </span>
+                                <div class="text-secondary small mt-1" style="font-size: 0.72rem;">
+                                    {{ 'Safe (>= 50%)' if s.overall_pct >= 50 else 'Shortage (< 50%)' }}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 2. AUDIT TRAIL & FILTER CONTROLS -->
+    <div class="sv-card p-3 mb-4">
+        <form method="GET" action="{{ url_for('attendance_page') }}" class="row g-3 align-items-end">
+            <input type="hidden" name="lab_date" value="{{ lab_matrix.selected_date }}">
+
+            <div class="col-md-3">
+                <label for="filterDate" class="form-label text-secondary small fw-semibold">Audit Date</label>
+                <input type="date" id="filterDate" name="date" class="form-control form-control-custom" value="{{ date_filter if date_filter != 'All' else '' }}">
+            </div>
+
+            <div class="col-md-3">
+                <label for="filterDept" class="form-label text-secondary small fw-semibold">Department</label>
+                <select id="filterDept" name="department" class="form-select form-select-custom">
+                    <option value="All" {{ 'selected' if dept_filter == 'All' else '' }}>All Departments</option>
+                    {% for d in departments %}
+                        <option value="{{ d }}" {{ 'selected' if dept_filter == d else '' }}>{{ d }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label for="filterStatus" class="form-label text-secondary small fw-semibold">Status</label>
+                <select id="filterStatus" name="status" class="form-select form-select-custom">
+                    <option value="All" {{ 'selected' if status_filter == 'All' else '' }}>All Statuses</option>
+                    <option value="Present" {{ 'selected' if status_filter == 'Present' else '' }}>Present</option>
+                    <option value="Manual" {{ 'selected' if status_filter == 'Manual' else '' }}>Manual</option>
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label for="filterQuery" class="form-label text-secondary small fw-semibold">Search Member</label>
+                <input type="text" id="filterQuery" name="q" class="form-control form-control-custom" placeholder="Name or ID..." value="{{ search_q }}">
+            </div>
+
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary-custom flex-grow-1">
+                    <i class="fa-solid fa-filter me-1" aria-hidden="true"></i> Filter
+                </button>
+                <a href="{{ url_for('attendance_page') }}" class="btn btn-outline-secondary" title="Reset Filters" aria-label="Reset Filters">
+                    <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- General Logs Table -->
+    <div class="sv-card overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-custom mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">#</th>
+                        <th style="width: 60px;">Snapshot</th>
+                        <th>Student ID</th>
+                        <th>Full Name</th>
+                        <th>Department</th>
+                        <th>Date &amp; Time</th>
+                        <th>Classes Credited</th>
+                        <th>Daily Rate %</th>
+                        <th>Confidence</th>
+                        <th>Source</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if records %}
+                        {% for r in records %}
+                            {% set classes_att = r.classes_attended if r.classes_attended is not none else 2 %}
+                            {% set classes_held = r.total_classes_for_day if r.total_classes_for_day is not none else 2 %}
+                            {% set day_pct = (classes_att / classes_held * 100)|round(1) if classes_held > 0 else 100.0 %}
+                            <tr>
+                                <td class="text-secondary small">{{ loop.index }}</td>
+                                <td>
+                                    <img src="{{ url_for('static', filename=r.snapshot_path) if r.snapshot_path else 'https://ui-avatars.com/api/?name=' + r.student_name + '&background=e2e8f0&color=2563eb' }}" 
+                                         alt="Verification snapshot of {{ r.student_name }}"
+                                         class="rounded-circle border border-secondary" 
+                                         style="width: 38px; height: 38px; object-fit: cover;"
+                                         onerror="this.src='https://ui-avatars.com/api/?name={{ r.student_name }}&background=e2e8f0&color=2563eb'">
+                                </td>
+                                <td><code class="text-primary fw-bold">{{ r.student_id }}</code></td>
+                                <td class="fw-semibold text-white">{{ r.student_name }}</td>
+                                <td><span class="badge bg-dark border border-secondary text-secondary">{{ r.department or 'Idea Lab' }}</span></td>
+                                <td class="text-secondary small">
+                                    {{ r.date }} <span class="text-muted">({{ r.time }})</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary fs-6">
+                                        {{ classes_att }} / {{ classes_held }} Classes
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong class="{{ 'text-success' if day_pct >= 50 else 'text-danger' }} fs-6">
+                                        {{ day_pct }}%
+                                    </strong>
+                                </td>
+                                <td>
+                                    <span class="text-muted small">
+                                        {{ (r.confidence * 100)|round(1) }}%
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-dark border border-secondary text-secondary small">
+                                        {{ r.marked_via }}
+                                    </span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="10" class="text-center py-5 text-muted">
+                                <i class="fa-regular fa-folder-open fa-2x mb-2 d-block text-secondary"></i>
+                                No attendance records matching your criteria.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Super-Admin 6:00 PM Override Modal -->
+<div class="modal fade" id="overrideModal" tabindex="-1" aria-labelledby="overrideModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content modal-content-custom">
+            <div class="modal-header modal-header-custom">
+                <h5 class="modal-title fw-bold text-white" id="overrideModalLabel">
+                    <i class="fa-solid fa-triangle-exclamation text-warning me-2"></i> Administrative Lock Override
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="overrideForm">
+                <input type="hidden" id="overrideStudentId" name="student_id">
+                <input type="hidden" id="overrideDate" name="date">
+                <input type="hidden" id="overrideSlotNumber" name="slot_number">
+                <input type="hidden" id="overrideStatus" name="status">
+                <input type="hidden" name="allow_override" value="true">
+
+                <div class="modal-body p-4">
+                    <div class="alert alert-warning border-warning-subtle small mb-3">
+                        <i class="fa-solid fa-lock text-warning me-1"></i>
+                        <strong>6:00 PM Cutoff Rule Active:</strong> Modifying past or locked attendance requires explicit departmental authorization.
+                    </div>
+                    <div class="mb-3">
+                        <label for="overrideReason" class="form-label text-secondary small fw-semibold">Administrative Reason / Authorization Note *</label>
+                        <textarea class="form-control form-control-custom" id="overrideReason" name="admin_notes" rows="3" placeholder="e.g. Authorized by Lab Incharge / Medical Leave approved by Dean..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer modal-footer-custom">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Confirm &amp; Apply Override</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Credit Classes Modal -->
+<div class="modal fade" id="adjustClassesModal" tabindex="-1" aria-labelledby="adjustClassesModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content modal-content-custom">
+            <div class="modal-header modal-header-custom">
+                <h5 class="modal-title fw-bold text-white" id="adjustClassesModalLabel">
+                    <i class="fa-solid fa-sliders text-warning me-2"></i> Credit Attendance Classes
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="adjustClassesForm">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label for="adjStudentId" class="form-label text-secondary small fw-semibold">Select Student</label>
+                        <select id="adjStudentId" name="student_id" class="form-select form-select-custom" required>
+                            <option value="">-- Choose Student --</option>
+                            {% for s in students %}
+                                <option value="{{ s.student_id }}">{{ s.name }} ({{ s.student_id }}) - {{ s.department }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="adjClassesAtt" class="form-label text-secondary small fw-semibold">Classes Attended (Numerator)</label>
+                            <input type="number" id="adjClassesAtt" name="classes_attended" class="form-control form-control-custom" min="0" max="10" value="2" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="adjTotalClasses" class="form-label text-secondary small fw-semibold">Total Classes Held (Denominator)</label>
+                            <input type="number" id="adjTotalClasses" name="total_classes" class="form-control form-control-custom" min="1" max="10" value="2" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="adjDate" class="form-label text-secondary small fw-semibold">Class Date</label>
+                        <input type="date" id="adjDate" name="date" class="form-control form-control-custom" value="{{ lab_matrix.selected_date }}" required>
+                    </div>
+                </div>
+                <div class="modal-footer modal-footer-custom">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary-custom">Update Attendance</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Manual Entry Modal -->
+<div class="modal fade" id="manualEntryModal" tabindex="-1" aria-labelledby="manualEntryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content modal-content-custom">
+            <div class="modal-header modal-header-custom">
+                <h5 class="modal-title fw-bold text-white" id="manualEntryModalLabel">
+                    <i class="fa-solid fa-signature text-primary me-2"></i> Mark Attendance Manually
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="manualEntryForm">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label for="manStudentId" class="form-label text-secondary small fw-semibold">Select Member</label>
+                        <select id="manStudentId" name="student_id" class="form-select form-select-custom" required>
+                            <option value="">-- Choose Enrolled Student --</option>
+                            {% for s in students %}
+                                <option value="{{ s.student_id }}">{{ s.name }} ({{ s.student_id }}) - {{ s.department }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="manNote" class="form-label text-secondary small fw-semibold">Override Reason</label>
+                        <input type="text" id="manNote" name="note" class="form-control form-control-custom" value="Manual verification by teacher" required>
+                    </div>
+                </div>
+                <div class="modal-footer modal-footer-custom">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary-custom">Record Attendance</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function changeLabDate(dateStr) {
+        window.location.href = "{{ url_for('attendance_page') }}?lab_date=" + dateStr;
+    }
+
+    function toggleSlot(studentId, dateStr, slotNum, targetStatus, isLocked) {
+        if (isLocked) {
+            openOverrideModal(studentId, dateStr, slotNum, targetStatus);
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('student_id', studentId);
+        formData.append('date', dateStr);
+        formData.append('slot_number', slotNum);
+        formData.append('status', targetStatus);
+
+        fetch('/api/lab/attendance/toggle', { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    window.svClient.playSuccessChime();
+                    updateBadgeDOM(studentId, slotNum, targetStatus);
+                } else {
+                    if (res.locked) {
+                        openOverrideModal(studentId, dateStr, slotNum, targetStatus);
+                    } else {
+                        alert("Error: " + res.message);
+                    }
+                }
+            })
+            .catch(err => alert("Network error: " + err));
+    }
+
+    function updateBadgeDOM(studentId, slotNum, status) {
+        const badge = document.getElementById(`badge-${studentId}-${slotNum}`);
+        if (!badge) return;
+        if (status === 'PRESENT') {
+            badge.className = 'badge-present-pill';
+            badge.innerHTML = '<i class="fa-solid fa-check"></i> PRESENT (P)';
+        } else if (status === 'ABSENT') {
+            badge.className = 'badge-absent-pill';
+            badge.innerHTML = '<i class="fa-solid fa-xmark"></i> ABSENT (A)';
+        } else {
+            badge.className = 'badge-unmarked-pill';
+            badge.innerHTML = 'Not marked';
+        }
+
+        const btnP = document.getElementById(`btn-${studentId}-${slotNum}-P`);
+        const btnA = document.getElementById(`btn-${studentId}-${slotNum}-A`);
+        const btnN = document.getElementById(`btn-${studentId}-${slotNum}-N`);
+        if (btnP && btnA && btnN) {
+            btnP.classList.remove('active');
+            btnA.classList.remove('active');
+            btnN.classList.remove('active');
+            if (status === 'PRESENT') btnP.classList.add('active');
+            else if (status === 'ABSENT') btnA.classList.add('active');
+            else btnN.classList.add('active');
+        }
+    }
+
+    function bulkMarkSlot(slotNum, status) {
+        const isLocked = {{ 'true' if lab_matrix.is_locked else 'false' }};
+        const dateStr = '{{ lab_matrix.selected_date }}';
+        if (isLocked) {
+            openOverrideModal('ALL', dateStr, slotNum, status);
+            return;
+        }
+        if (!confirm(`Mark ALL students as ${status} for Slot ${slotNum} on ${dateStr}?`)) {
+            return;
+        }
+        const formData = new FormData();
+        formData.append('date', dateStr);
+        formData.append('slot_number', slotNum);
+        formData.append('status', status);
+
+        fetch('/api/lab/attendance/bulk_toggle', { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    window.svClient.playSuccessChime();
+                    location.reload();
+                } else {
+                    if (res.locked) {
+                        openOverrideModal('ALL', dateStr, slotNum, status);
+                    } else {
+                        alert("Bulk Update Error: " + res.message);
+                    }
+                }
+            })
+            .catch(err => alert("Network error: " + err));
+    }
+
+    let overrideBsModal = null;
+    function openOverrideModal(studentId, dateStr, slotNum, status) {
+        document.getElementById('overrideStudentId').value = studentId;
+        document.getElementById('overrideDate').value = dateStr;
+        document.getElementById('overrideSlotNumber').value = slotNum;
+        document.getElementById('overrideStatus').value = status;
+        document.getElementById('overrideReason').value = '';
+
+        if (!overrideBsModal) {
+            overrideBsModal = new bootstrap.Modal(document.getElementById('overrideModal'));
+        }
+        overrideBsModal.show();
+    }
+
+    document.getElementById('overrideForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+
+        fetch('/api/lab/attendance/toggle', { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    window.svClient.playSuccessChime();
+                    alert("Admin Override Applied: " + res.message);
+                    if (overrideBsModal) overrideBsModal.hide();
+                    location.reload();
+                } else {
+                    alert("Override Failed: " + res.message);
+                }
+            })
+            .catch(err => alert("Network error: " + err));
+    });
+
+    document.getElementById('manualEntryForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        fetch('/api/attendance/manual', { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    window.svClient.playSuccessChime();
+                    alert(res.message);
+                    location.reload();
+                } else {
+                    alert("Error: " + res.message);
+                }
+            })
+            .catch(err => alert("Network error: " + err));
+    });
+
+    document.getElementById('adjustClassesForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        fetch('/api/attendance/update_classes', { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    window.svClient.playSuccessChime();
+                    alert(res.message);
+                    location.reload();
+                } else {
+                    alert("Error: " + res.message);
+                }
+            })
+            .catch(err => alert("Network error: " + err));
+    });
+</script>
+{% endblock %}

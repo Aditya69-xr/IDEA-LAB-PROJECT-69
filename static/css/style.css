@@ -1,0 +1,1050 @@
+/* SmartVision - Modern Idea Lab AI Attendance System Styles */
+/* Clean White Enterprise Interface Theme */
+:root {
+    --bg-main: #ffffff;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f8fafc;
+    --border-color: #e2e8f0;
+    --accent-primary: #3b82f6;
+    --accent-success: #10b981;
+    --accent-warning: #f59e0b;
+    --accent-danger: #ef4444;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+}
+
+/* Accessibility: Skip Link */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 10px;
+    background: var(--accent-primary);
+    color: #fff !important;
+    padding: 8px 16px;
+    z-index: 2000;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: 600;
+    transition: top 0.2s ease;
+}
+.skip-link:focus {
+    top: 10px;
+}
+
+/* Accessibility: Keyboard Focus Indicators (WCAG 2.1 AA) */
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 3px solid #3b82f6 !important;
+    outline-offset: 2px !important;
+}
+
+/* Navbar - Clean White */
+.navbar-custom {
+    background-color: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.25rem;
+    letter-spacing: -0.02em;
+    color: #0f172a !important;
+}
+
+.navbar-nav .nav-link {
+    color: #334155 !important;
+    font-weight: 500;
+    transition: color 0.15s ease;
+}
+
+.navbar-nav .nav-link:hover,
+.navbar-nav .nav-link.active {
+    color: var(--accent-primary) !important;
+}
+
+.navbar-toggler {
+    border-color: #cbd5e1 !important;
+}
+
+.navbar-toggler-icon {
+    filter: invert(0.8);
+}
+
+.brand-badge {
+    font-size: 0.68rem;
+    padding: 3px 8px;
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    color: #ffffff !important;
+    border-radius: 6px;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+/* Cards & Containers - Clean White */
+.sv-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sv-card:hover {
+    border-color: #cbd5e1;
+}
+
+.sv-card-header {
+    background-color: #ffffff;
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+/* KPI Metric Cards - White with Colored Accent Bars */
+.kpi-card {
+    position: relative;
+    overflow: hidden;
+    padding: 1.25rem;
+    border-radius: 12px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.05);
+}
+
+.kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+}
+
+.kpi-blue::before { background-color: var(--accent-primary); }
+.kpi-green::before { background-color: var(--accent-success); }
+.kpi-amber::before { background-color: var(--accent-warning); }
+.kpi-purple::before { background-color: #8b5cf6; }
+
+.kpi-title {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.kpi-value {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-top: 0.3rem;
+    color: #0f172a;
+}
+
+.kpi-icon {
+    position: absolute;
+    right: 1.25rem;
+    top: 1.25rem;
+    font-size: 1.75rem;
+    opacity: 0.20;
+}
+
+/* Video Containers */
+.video-wrapper {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #0f172a;
+    border: 2px solid var(--border-color);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.video-stream {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+}
+
+.video-overlay-pill {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(15, 23, 42, 0.88);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #ffffff !important;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    z-index: 10;
+}
+
+.video-overlay-pill span {
+    color: #ffffff !important;
+}
+
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    background-color: var(--accent-success);
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* Status Badges - Preserving All Accent Colors */
+.badge-status-present {
+    background-color: rgba(16, 185, 129, 0.12);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+.badge-status-sim {
+    background-color: rgba(245, 158, 11, 0.12);
+    color: #d97706;
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+.badge-status-danger {
+    background-color: rgba(239, 68, 68, 0.12);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+.badge-status-connected {
+    background-color: rgba(59, 130, 246, 0.12);
+    color: #2563eb;
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+/* Tables - Clean White with Crisp Contrast */
+.table-custom {
+    color: var(--text-primary);
+    margin-bottom: 0;
+}
+
+.table-custom th {
+    background-color: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid var(--border-color);
+    padding: 0.85rem 1rem;
+}
+
+.table-custom td {
+    background-color: #ffffff;
+    border-bottom: 1px solid var(--border-color);
+    padding: 0.85rem 1rem;
+    vertical-align: middle;
+    font-size: 0.9rem;
+    color: #1e293b;
+}
+
+.table-custom tr:hover td {
+    background-color: var(--bg-card-hover);
+}
+
+/* Live Feed Items */
+.feed-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background-color: #ffffff;
+    border: 1px solid var(--border-color);
+    margin-bottom: 8px;
+    transition: all 0.25s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.feed-item:hover {
+    background-color: #f8fafc;
+    transform: translateX(3px);
+    border-color: #cbd5e1;
+}
+
+.feed-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border-color);
+    background-color: #f1f5f9;
+}
+
+/* Terminal Console for Hardware - Crisp Dark Terminal in White Container */
+.terminal-window {
+    background-color: #0f172a;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    padding: 12px;
+    height: 280px;
+    overflow-y: auto;
+    color: #a7f3d0;
+}
+
+.terminal-line {
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+
+.terminal-tx { color: #60a5fa; }
+.terminal-rx { color: #34d399; }
+.terminal-sim { color: #fbbf24; }
+.terminal-err { color: #f87171; }
+
+/* Custom Buttons - Preserving Vibrant Blue & Hover */
+.btn-primary-custom {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    border: none;
+    color: #ffffff !important;
+    font-weight: 500;
+    border-radius: 8px;
+    padding: 8px 16px;
+    transition: all 0.2s ease;
+}
+
+.btn-primary-custom:hover {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+}
+
+/* Outline Buttons on White Theme */
+.btn-outline-light {
+    color: #334155 !important;
+    border-color: #cbd5e1 !important;
+    background-color: #ffffff !important;
+}
+
+.btn-outline-light:hover {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+    border-color: #94a3b8 !important;
+}
+
+.btn-outline-secondary {
+    color: #475569 !important;
+    border-color: #cbd5e1 !important;
+    background-color: #ffffff !important;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+    border-color: #94a3b8 !important;
+}
+
+/* Modals - Clean White */
+.modal-content-custom {
+    background-color: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    color: var(--text-primary);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+}
+
+.modal-header-custom {
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.25rem 1.5rem;
+}
+
+.modal-footer-custom {
+    border-top: 1px solid var(--border-color);
+    padding: 1rem 1.5rem;
+}
+
+/* Form Inputs - Clean White with Slate Border */
+.form-control, .form-select, .form-control-custom, .form-select-custom {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    border-radius: 8px;
+    padding: 8px 12px;
+}
+
+.form-control:focus, .form-select:focus, .form-control-custom:focus, .form-select-custom:focus {
+    background-color: #ffffff !important;
+    border-color: var(--accent-primary) !important;
+    color: #0f172a !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18) !important;
+}
+
+.form-control::placeholder, .form-control-custom::placeholder {
+    color: #94a3b8 !important;
+}
+
+.input-group-text {
+    background-color: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+    color: #475569 !important;
+}
+
+/* White Theme Helper Overrides for Bootstrap Classes */
+.bg-dark {
+    background-color: #f8fafc !important;
+}
+
+.bg-black {
+    background-color: #f1f5f9 !important;
+}
+
+.border-secondary {
+    border-color: #e2e8f0 !important;
+}
+
+.border-dark {
+    border-color: #cbd5e1 !important;
+}
+
+.text-white {
+    color: #0f172a !important;
+}
+
+.text-secondary {
+    color: #475569 !important;
+}
+
+.text-muted {
+    color: #64748b !important;
+}
+
+/* Ensure white text is preserved inside colored elements */
+.btn .text-white,
+.btn-primary-custom,
+.btn-primary,
+.btn-danger,
+.btn-success,
+.btn-warning,
+.badge .text-white,
+.brand-badge,
+.badge.bg-primary,
+.badge.bg-danger,
+.badge.bg-success,
+.badge.bg-warning,
+.badge.bg-info,
+.badge.bg-secondary,
+.toast,
+.skip-link {
+    color: #ffffff !important;
+}
+
+/* Dropdown Menus */
+.dropdown-menu,
+.dropdown-menu-dark {
+    background-color: #ffffff !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04) !important;
+}
+
+.dropdown-menu .dropdown-item,
+.dropdown-menu-dark .dropdown-item {
+    color: #1e293b !important;
+    font-size: 0.88rem;
+    padding: 0.5rem 1rem;
+}
+
+.dropdown-menu .dropdown-item:hover,
+.dropdown-menu-dark .dropdown-item:hover,
+.dropdown-menu .dropdown-item:focus,
+.dropdown-menu-dark .dropdown-item:focus {
+    background-color: #f1f5f9 !important;
+    color: var(--accent-primary) !important;
+}
+
+.dropdown-menu .dropdown-divider,
+.dropdown-menu-dark .dropdown-divider {
+    border-color: var(--border-color) !important;
+}
+
+/* Progress Bars */
+.progress {
+    background-color: #e2e8f0 !important;
+}
+
+/* Footer - Clean White */
+.footer-custom {
+    background-color: #ffffff !important;
+    border-top: 1px solid var(--border-color);
+    color: #64748b;
+}
+
+.hover-white:hover {
+    color: #0f172a !important;
+}
+
+/* Cookie Consent Banner - Clean White */
+.cookie-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border-color);
+    padding: 1rem 0;
+    z-index: 1090;
+    color: #1e293b;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* ERP Session Cards & Pills (Matching User Images 1 & 2) */
+.session-card {
+    background-color: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.session-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.session-card-present {
+    border-left: 6px solid #10b981 !important;
+}
+
+.session-card-absent {
+    border-left: 6px solid #ef4444 !important;
+}
+
+.session-card-unmarked {
+    border-left: 6px solid #cbd5e1 !important;
+}
+
+.badge-present-pill {
+    background-color: rgba(16, 185, 129, 0.12);
+    color: #059669 !important;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.82rem;
+    letter-spacing: 0.03em;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.badge-absent-pill {
+    background-color: rgba(239, 68, 68, 0.12);
+    color: #dc2626 !important;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.82rem;
+    letter-spacing: 0.03em;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.badge-unmarked-pill {
+    background-color: #f1f5f9;
+    color: #64748b !important;
+    border: 1px solid #cbd5e1;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.82rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.filter-pill-btn {
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 6px 16px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.filter-pill-btn:hover {
+    border-color: #94a3b8;
+    color: #0f172a;
+}
+
+.filter-pill-btn.active {
+    background: #0f172a !important;
+    color: #ffffff !important;
+    border-color: #0f172a !important;
+}
+
+.filter-pill-btn.pill-present.active {
+    background: #10b981 !important;
+    border-color: #10b981 !important;
+    color: #ffffff !important;
+}
+
+.filter-pill-btn.pill-absent.active {
+    background: #ef4444 !important;
+    border-color: #ef4444 !important;
+    color: #ffffff !important;
+}
+
+/* ==========================================================================
+   DIGICAMPUS REVERSE-ENGINEERED COMPONENT STYLES (IMAGES 1 & 2)
+   ========================================================================== */
+
+/* Top Coral Red Header Bar (DigiCampus Academics Header) */
+.digi-top-bar {
+    background-color: #ff4d4f;
+    border-radius: 20px 20px 0 0;
+    padding: 16px 20px 0 20px;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(255, 77, 79, 0.2);
+}
+
+.digi-top-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ffffff !important;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.digi-top-title a {
+    color: #ffffff !important;
+    text-decoration: none;
+}
+
+.digi-tabs-nav {
+    display: flex;
+    gap: 24px;
+    margin-top: 14px;
+}
+
+.digi-tab-link {
+    color: rgba(255, 255, 255, 0.78) !important;
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 8px 4px 12px 4px;
+    text-decoration: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.digi-tab-link:hover {
+    color: #ffffff !important;
+}
+
+.digi-tab-link.active {
+    color: #ffffff !important;
+    border-bottom: 3px solid #ffffff;
+}
+
+/* DigiCampus Screen Container */
+.digi-screen-wrapper {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 6px 24px -4px rgba(0, 0, 0, 0.06);
+    max-width: 820px;
+    margin: 0 auto;
+}
+
+.digi-screen-body {
+    padding: 20px 22px;
+    background: #ffffff;
+}
+
+/* Image 1: Academic Course Subject Cards */
+.digi-course-card {
+    background: #ffffff;
+    border: 1px solid #f1f5f9;
+    border-radius: 18px;
+    padding: 18px 22px;
+    margin-bottom: 14px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.digi-course-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+    border-color: #e2e8f0;
+}
+
+.digi-course-card.clickable-card {
+    cursor: pointer;
+}
+
+.digi-course-card.clickable-card:hover {
+    border-color: #ff4d4f;
+}
+
+.digi-course-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.digi-course-name {
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+}
+
+.digi-pct-badge {
+    background-color: #fff1f2;
+    color: #ff4d4f;
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 6px 16px;
+    border-radius: 12px;
+    letter-spacing: 0.02em;
+}
+
+.digi-pct-badge.olive {
+    background-color: #f5f5f4;
+    color: #78716c;
+}
+
+/* Thin Progress Track with Cutoff Indicator Dot */
+.digi-progress-track {
+    width: 100%;
+    height: 6px;
+    background-color: #f1f5f9;
+    border-radius: 6px;
+    position: relative;
+    margin-bottom: 8px;
+    overflow: visible;
+}
+
+.digi-progress-bar {
+    height: 100%;
+    border-radius: 6px;
+    background-color: #ff4d4f;
+    transition: width 0.4s ease;
+}
+
+.digi-progress-bar.olive {
+    background-color: #78716c;
+}
+
+.digi-cutoff-dot {
+    position: absolute;
+    top: -3px;
+    width: 12px;
+    height: 12px;
+    background-color: #ff4d4f;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.digi-sessions-text {
+    font-size: 0.88rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* Image 2: Component Attendance Card */
+.digi-component-card {
+    background-color: #fff5f5;
+    border: 1px solid #fee2e2;
+    border-radius: 20px;
+    padding: 22px 24px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.digi-component-label {
+    font-size: 0.9rem;
+    color: #64748b;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.digi-component-pct {
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: #ff4d4f;
+    line-height: 1.1;
+    margin-bottom: 4px;
+}
+
+.digi-component-sub {
+    font-size: 0.95rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.digi-check-gauge {
+    width: 64px;
+    height: 64px;
+    border: 3.5px solid #ff4d4f;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ff4d4f;
+    font-size: 1.6rem;
+    background: #ffffff;
+    box-shadow: 0 2px 6px rgba(255, 77, 79, 0.15);
+}
+
+.digi-check-gauge.danger {
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+/* Image 2 Filter Pills */
+.digi-filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.digi-pill-btn {
+    border-radius: 24px;
+    font-size: 0.86rem;
+    font-weight: 600;
+    padding: 6px 16px;
+    border: 1.5px solid #cbd5e1;
+    background: #ffffff;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.digi-pill-btn:hover {
+    border-color: #94a3b8;
+}
+
+.digi-pill-btn.active {
+    background: #0f172a !important;
+    border-color: #0f172a !important;
+    color: #ffffff !important;
+}
+
+.digi-pill-btn.pill-present {
+    border-color: #22c55e;
+    color: #16a34a;
+}
+
+.digi-pill-btn.pill-present.active {
+    background: #22c55e !important;
+    border-color: #22c55e !important;
+    color: #ffffff !important;
+}
+
+.digi-pill-btn.pill-present .pill-badge {
+    background: #dcfce7;
+    color: #16a34a;
+    border-radius: 12px;
+    padding: 1px 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.digi-pill-btn.pill-present.active .pill-badge {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+}
+
+.digi-pill-btn.pill-absent {
+    border-color: #ef4444;
+    color: #dc2626;
+}
+
+.digi-pill-btn.pill-absent.active {
+    background: #ef4444 !important;
+    border-color: #ef4444 !important;
+    color: #ffffff !important;
+}
+
+.digi-pill-btn.pill-absent .pill-badge {
+    background: #fee2e2;
+    color: #dc2626;
+    border-radius: 12px;
+    padding: 1px 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.digi-pill-btn.pill-absent.active .pill-badge {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+}
+
+/* Image 2: Chronological Session Cards */
+.digi-session-item {
+    background: #ffffff;
+    border: 1px solid #f1f5f9;
+    border-radius: 14px;
+    padding: 14px 18px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    transition: all 0.15s ease;
+}
+
+.digi-session-item:hover {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    border-color: #e2e8f0;
+}
+
+.digi-session-item.status-present {
+    border-left: 6px solid #22c55e !important;
+}
+
+.digi-session-item.status-absent {
+    border-left: 6px solid #ef4444 !important;
+}
+
+.digi-session-item.status-unmarked {
+    border-left: 6px solid #cbd5e1 !important;
+}
+
+.digi-session-time {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 2px;
+}
+
+.digi-session-meta {
+    font-size: 0.8rem;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.digi-badge-status-present {
+    background-color: #f0fdf4;
+    color: #16a34a;
+    font-weight: 700;
+    font-size: 0.86rem;
+    padding: 6px 14px;
+    border-radius: 20px;
+    letter-spacing: 0.02em;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.digi-badge-status-absent {
+    background-color: #fef2f2;
+    color: #dc2626;
+    font-weight: 700;
+    font-size: 0.86rem;
+    padding: 6px 14px;
+    border-radius: 20px;
+    letter-spacing: 0.02em;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.digi-badge-status-unmarked {
+    background-color: #f8fafc;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 0.86rem;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Faculty Roster Interactive Quick Controls */
+.roster-btn-group .btn {
+    padding: 4px 10px;
+    font-weight: 700;
+    font-size: 0.82rem;
+    border-radius: 6px !important;
+}
+
+.roster-btn-group .btn-present.active {
+    background-color: #22c55e !important;
+    border-color: #22c55e !important;
+    color: #ffffff !important;
+}
+
+.roster-btn-group .btn-absent.active {
+    background-color: #ef4444 !important;
+    border-color: #ef4444 !important;
+    color: #ffffff !important;
+}
+
+.roster-btn-group .btn-unmarked.active {
+    background-color: #94a3b8 !important;
+    border-color: #94a3b8 !important;
+    color: #ffffff !important;
+}

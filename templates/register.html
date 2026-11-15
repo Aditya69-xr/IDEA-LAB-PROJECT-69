@@ -1,0 +1,347 @@
+{% extends "base.html" %}
+
+{% block title %}Enroll Member Face &amp; Consent | SmartVision Idea Lab{% endblock %}
+
+{% block content %}
+<div class="container py-3">
+    <div class="row justify-content-center">
+        <div class="col-lg-9 col-xl-8">
+            <div class="sv-card">
+                <div class="sv-card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="fw-bold mb-0 text-white">Enroll New Idea Lab Member</h4>
+                        <small class="text-secondary">Register biometric facial profile, consent verification, and student portal credentials</small>
+                    </div>
+                    <a href="{{ url_for('students') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fa-solid fa-list me-1"></i> View Directory
+                    </a>
+                </div>
+
+                <div class="p-4">
+                    <form id="registrationForm" enctype="multipart/form-data">
+                        <!-- Data Minimization Notice -->
+                        <div class="alert alert-dark border-secondary small mb-4 py-2">
+                            <i class="fa-solid fa-shield-halved text-primary me-2"></i>
+                            <strong>Data Minimization Notice:</strong> In compliance with the Digital Personal Data Protection (DPDP) Act 2023, only necessary academic details are requested. Raw camera frames are converted locally to mathematical vectors and never transmitted to external cloud servers.
+                        </div>
+
+                        <!-- Member Basic Details -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label for="regName" class="form-label text-secondary small fw-semibold">Full Name *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="fa-solid fa-user"></i></span>
+                                    <input type="text" id="regName" name="name" class="form-control form-control-custom" placeholder="e.g. Aditya Jain" required>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="regStudentId" class="form-label text-secondary small fw-semibold">Student / Member ID *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="fa-solid fa-id-badge"></i></span>
+                                    <input type="text" id="regStudentId" name="student_id" class="form-control form-control-custom" placeholder="e.g. IL-2026-001" required>
+                                </div>
+                                <small class="text-muted" style="font-size: 0.75rem;">Will serve as student portal username.</small>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="regDept" class="form-label text-secondary small fw-semibold">Department / Lab Branch *</label>
+                                <input type="text" id="regDept" name="department" class="form-control form-control-custom" placeholder="e.g. AI & Robotics, CSE, IoT" required list="deptOptions">
+                                <datalist id="deptOptions">
+                                    <option value="Idea Lab Core">
+                                    <option value="AI & Robotics">
+                                    <option value="Computer Science">
+                                    <option value="Electronics & IoT">
+                                    <option value="Mechanical / 3D Design">
+                                </datalist>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="regRole" class="form-label text-secondary small fw-semibold">Role</label>
+                                <select id="regRole" name="role" class="form-select form-select-custom">
+                                    <option value="Member" selected>Member</option>
+                                    <option value="Student">Student</option>
+                                    <option value="Researcher">Researcher</option>
+                                    <option value="Lab Assistant">Lab Assistant</option>
+                                    <option value="Faculty">Faculty</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="regEmail" class="form-label text-secondary small fw-semibold">Email Address (Optional)</label>
+                                <input type="email" id="regEmail" name="email" class="form-control form-control-custom" placeholder="member@college.edu">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="regPassword" class="form-label text-secondary small fw-semibold">Student Portal Password (Optional)</label>
+                                <div class="input-group">
+                                    <input type="password" id="regPassword" name="password" class="form-control form-control-custom" placeholder="Leave blank for default: Student@<ID>">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="togglePasswordVisibility('regPassword', 'regEyeIcon')" aria-label="Toggle password visibility">
+                                        <i id="regEyeIcon" class="fa-solid fa-eye text-secondary"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Face Capture / Upload Method Tabs -->
+                        <h6 class="fw-bold text-white mb-3">
+                            <i class="fa-solid fa-camera text-primary me-2"></i> Face Biometric Enrollment
+                        </h6>
+
+                        <ul class="nav nav-pills mb-3 gap-2" id="photoModeTabs" role="tablist">
+                            <li class="nav-item">
+                                <button class="nav-link active btn-sm rounded-pill px-3" id="tab-webcam" data-bs-toggle="pill" data-bs-target="#pane-webcam" type="button">
+                                    <i class="fa-solid fa-video me-1"></i> Live Webcam
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link btn-sm rounded-pill px-3" id="tab-upload" data-bs-toggle="pill" data-bs-target="#pane-upload" type="button">
+                                    <i class="fa-solid fa-cloud-arrow-up me-1"></i> Upload Photo File
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content mb-4" id="photoTabContent">
+                            <!-- Tab 1: Live Webcam Capture -->
+                            <div class="tab-pane fade show active" id="pane-webcam">
+                                <div class="row g-3 align-items-center">
+                                    <div class="col-md-7">
+                                        <div class="video-wrapper position-relative text-center bg-black" style="min-height: 260px;">
+                                            <video id="webcam-video" autoplay playsinline muted style="width: 100%; height: 260px; object-fit: cover; border-radius: 8px;"></video>
+                                            <canvas id="capture-canvas" style="display: none;"></canvas>
+                                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 140px; height: 180px; border: 2px dashed rgba(59, 130, 246, 0.7); border-radius: 50%; pointer-events: none;"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-5">
+                                        <div class="p-3 bg-dark rounded-3 border border-secondary text-center">
+                                            <div id="capture-preview-box" class="mb-3">
+                                                <div class="text-secondary small mb-2">Captured Face Preview</div>
+                                                <img id="captured-preview-img" src="https://placehold.co/120x120/1e293b/94a3b8?text=No+Capture" 
+                                                     alt="Preview of captured face"
+                                                     class="rounded-3 border border-secondary" style="width: 110px; height: 110px; object-fit: cover;">
+                                            </div>
+
+                                            <div class="d-grid gap-2">
+                                                <button type="button" class="btn btn-sm btn-primary-custom" onclick="captureSinglePhoto()">
+                                                    <i class="fa-solid fa-camera me-1"></i> Snap Photo
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-info" onclick="captureMultiSamples()">
+                                                    <i class="fa-solid fa-layer-group me-1"></i> Smart 5-Sample Burst
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="grabServerSnapshot()">
+                                                    <i class="fa-solid fa-desktop me-1"></i> Grab Main Lab Camera
+                                                </button>
+                                            </div>
+                                            <div id="sample-status" class="small text-muted mt-2">Ready to capture</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tab 2: Upload File -->
+                            <div class="tab-pane fade" id="pane-upload">
+                                <div class="p-4 border border-secondary border-dashed rounded-3 text-center bg-dark">
+                                    <i class="fa-regular fa-image fa-3x text-secondary mb-3"></i>
+                                    <div class="mb-3">
+                                        <label for="photoFile" class="form-label text-white fw-semibold">Choose Portrait Photo</label>
+                                        <input class="form-control form-control-custom mx-auto" type="file" id="photoFile" name="photo" accept="image/jpeg,image/png" style="max-width: 400px;" onchange="previewUpload(this)">
+                                        <small class="text-secondary d-block mt-2">PNG or JPEG format with front-facing lighting.</small>
+                                    </div>
+                                    <div id="upload-preview-container" class="d-none mt-3">
+                                        <img id="upload-preview-img" src="" alt="Uploaded photo preview" class="rounded-3 border border-primary shadow" style="max-width: 150px; max-height: 150px; object-fit: cover;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Legal & Privacy Form Consents (No Dark Patterns) -->
+                        <div class="p-3 bg-dark rounded-3 border border-secondary mb-4">
+                            <h6 class="fw-bold text-white mb-2"><i class="fa-solid fa-clipboard-check text-success me-2"></i> Required Consent Confirmations</h6>
+                            
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" value="1" id="biometricConsent" name="biometric_consent" required>
+                                <label class="form-check-label text-secondary small" for="biometricConsent">
+                                    <strong class="text-white">Biometric Template Consent:</strong> I explicitly consent to the mathematical generation and on-premise local storage of my 128-dimensional facial embedding vector for the purpose of automated attendance logging in Idea Lab, in accordance with the <a href="{{ url_for('privacy_page') }}" target="_blank" class="text-primary text-decoration-underline">Privacy Policy</a>.
+                                </label>
+                            </div>
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="1" id="ageConsent" name="age_consent" required>
+                                <label class="form-check-label text-secondary small" for="ageConsent">
+                                    <strong class="text-white">Age &amp; Eligibility:</strong> I confirm that I am at least 18 years of age (or have verified parental/guardian permission) to register for Idea Lab smart attendance.
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Hidden fields to hold captured image data -->
+                        <input type="hidden" name="photo_mode" id="photo_mode" value="base64_snap">
+                        <input type="hidden" name="base64_image" id="base64_image">
+                        <div id="multi-samples-container"></div>
+
+                        <!-- Submit Button -->
+                        <div class="d-flex justify-content-between align-items-center pt-3 border-top border-secondary">
+                            <span class="text-secondary small"><i class="fa-solid fa-lock me-1"></i> Powered by SFace 128D ResNet on OpenCV DNN.</span>
+                            <button type="submit" id="submitBtn" class="btn btn-primary-custom px-4 py-2">
+                                <span id="btnText"><i class="fa-solid fa-check me-1"></i> Complete Registration</span>
+                                <span id="btnSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let localStream = null;
+    const video = document.getElementById('webcam-video');
+    const canvas = document.getElementById('capture-canvas');
+
+    async function initWebcam() {
+        try {
+            localStream = await navigator.mediaDevices.getUserMedia({
+                video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }
+            });
+            video.srcObject = localStream;
+        } catch (err) {
+            console.warn("Webcam access note:", err);
+            document.getElementById('sample-status').innerText = "Local webcam not accessible; you can use 'Grab Main Lab Camera' or file upload.";
+        }
+    }
+
+    function captureSinglePhoto() {
+        if (!video.videoWidth) {
+            alert("Webcam is not ready yet. Please wait or use 'Grab Main Lab Camera'.");
+            return;
+        }
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+        document.getElementById('captured-preview-img').src = dataUrl;
+        document.getElementById('base64_image').value = dataUrl;
+        document.getElementById('photo_mode').value = 'base64_snap';
+        document.getElementById('multi-samples-container').innerHTML = '';
+        document.getElementById('sample-status').innerHTML = '<span class="text-success"><i class="fa-solid fa-check"></i> Photo captured!</span>';
+    }
+
+    function grabServerSnapshot() {
+        document.getElementById('sample-status').innerText = "Fetching snapshot from main camera...";
+        document.getElementById('photo_mode').value = 'camera_snap';
+        document.getElementById('captured-preview-img').src = "{{ url_for('video_feed') }}?" + new Date().getTime();
+        document.getElementById('sample-status').innerHTML = '<span class="text-success"><i class="fa-solid fa-check"></i> Connected to Main Lab Camera stream!</span>';
+    }
+
+    async function captureMultiSamples() {
+        if (!video.videoWidth) {
+            alert("Webcam is not ready yet.");
+            return;
+        }
+        const container = document.getElementById('multi-samples-container');
+        container.innerHTML = '';
+        document.getElementById('photo_mode').value = 'multi_sample';
+
+        const statusEl = document.getElementById('sample-status');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+
+        for (let i = 1; i <= 5; i++) {
+            statusEl.innerHTML = `<span class="text-info"><i class="fa-solid fa-spinner fa-spin"></i> Capturing sample ${i} of 5 (tilt head slightly)...</span>`;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'samples[]';
+            input.value = dataUrl;
+            container.appendChild(input);
+
+            if (i === 1) {
+                document.getElementById('captured-preview-img').src = dataUrl;
+            }
+
+            await new Promise(r => setTimeout(r, 350));
+        }
+
+        statusEl.innerHTML = '<span class="text-success fw-bold"><i class="fa-solid fa-check-double"></i> 5 Samples Captured for Composite Embedding!</span>';
+    }
+
+    function previewUpload(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('upload-preview-img').src = e.target.result;
+                document.getElementById('upload-preview-container').classList.remove('d-none');
+                document.getElementById('photo_mode').value = 'upload';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    document.getElementById('tab-upload').addEventListener('click', () => {
+        document.getElementById('photo_mode').value = 'upload';
+    });
+    document.getElementById('tab-webcam').addEventListener('click', () => {
+        document.getElementById('photo_mode').value = 'base64_snap';
+    });
+
+    document.getElementById('registrationForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const btn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+        const btnSpinner = document.getElementById('btnSpinner');
+
+        btn.disabled = true;
+        btnText.classList.add('d-none');
+        btnSpinner.classList.remove('d-none');
+
+        const formData = new FormData(this);
+
+        fetch('/api/students/register', {
+            method: 'POST',
+            body: formData
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                window.svClient.playSuccessChime();
+                alert(data.message);
+                window.location.href = "{{ url_for('students') }}";
+            } else {
+                alert("Enrollment Error: " + data.message);
+                btn.disabled = false;
+                btnText.classList.remove('d-none');
+                btnSpinner.classList.add('d-none');
+            }
+        })
+        .catch(err => {
+            alert("Network error: " + err);
+            btn.disabled = false;
+            btnText.classList.remove('d-none');
+            btnSpinner.classList.add('d-none');
+        });
+    });
+
+    function togglePasswordVisibility(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(iconId);
+        if (input.type === "password") {
+            input.type = "text";
+            icon.className = "fa-solid fa-eye-slash text-primary";
+        } else {
+            input.type = "password";
+            icon.className = "fa-solid fa-eye text-secondary";
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', initWebcam);
+</script>
+{% endblock %}
