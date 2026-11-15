@@ -6,13 +6,24 @@ from dotenv import load_dotenv
 
 # Base directories
 BASE_DIR = Path(__file__).resolve().parent
-DATA_DIR = BASE_DIR / "data"
+
+# Check if running in Vercel Serverless environment
+IS_VERCEL = bool(os.getenv("VERCEL"))
+if IS_VERCEL:
+    DATA_DIR = Path("/tmp/data")
+    EXPORTS_DIR = Path("/tmp/exports")
+    UPLOADS_DIR = Path("/tmp/uploads")
+    STUDENT_PHOTOS_DIR = UPLOADS_DIR / "students"
+    SNAPSHOTS_DIR = UPLOADS_DIR / "snapshots"
+else:
+    DATA_DIR = BASE_DIR / "data"
+    EXPORTS_DIR = BASE_DIR / "exports"
+    UPLOADS_DIR = BASE_DIR / "static" / "uploads"
+    STUDENT_PHOTOS_DIR = UPLOADS_DIR / "students"
+    SNAPSHOTS_DIR = UPLOADS_DIR / "snapshots"
+
 MODELS_DIR = BASE_DIR / "models"
 STATIC_DIR = BASE_DIR / "static"
-UPLOADS_DIR = STATIC_DIR / "uploads"
-STUDENT_PHOTOS_DIR = UPLOADS_DIR / "students"
-SNAPSHOTS_DIR = UPLOADS_DIR / "snapshots"
-EXPORTS_DIR = BASE_DIR / "exports"
 
 # Ensure essential directories exist
 for folder in [DATA_DIR, MODELS_DIR, STATIC_DIR, UPLOADS_DIR, STUDENT_PHOTOS_DIR, SNAPSHOTS_DIR, EXPORTS_DIR]:

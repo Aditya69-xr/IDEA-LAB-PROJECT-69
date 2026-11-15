@@ -107,6 +107,38 @@ class SmartVisionClient {
         }
     }
 
+    toggleCameraPower() {
+        const btn = document.getElementById('globalCameraBtn');
+        const icon = document.getElementById('cameraPowerIcon');
+        const label = document.getElementById('cameraPowerLabel');
+
+        fetch('/api/camera/toggle', { method: 'POST' })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    if (res.is_running) {
+                        this.playSuccessChime();
+                        if (btn) btn.className = 'btn btn-sm btn-outline-success rounded-pill px-3 d-flex align-items-center gap-1';
+                        if (icon) icon.className = 'fa-solid fa-video text-success';
+                        if (label) label.innerText = 'Camera ON';
+                        alert('🟢 Camera Activated. Face detection is now running.');
+                    } else {
+                        if (btn) btn.className = 'btn btn-sm btn-outline-danger rounded-pill px-3 d-flex align-items-center gap-1';
+                        if (icon) icon.className = 'fa-solid fa-video-slash text-danger';
+                        if (label) label.innerText = 'Camera OFF';
+                        alert('🔴 Camera Turned OFF. Laptop webcam hardware is now completely released for your other apps.');
+                    }
+                    // Refresh video feeds if present
+                    document.querySelectorAll('.video-stream').forEach(img => {
+                        img.src = '/video_feed?t=' + new Date().getTime();
+                    });
+                } else {
+                    alert('Camera toggle error: ' + res.message);
+                }
+            })
+            .catch(err => alert('Error connecting to camera API: ' + err));
+    }
+
     startLiveEventPolling() {
         setInterval(() => {
             fetch('/api/live_events')

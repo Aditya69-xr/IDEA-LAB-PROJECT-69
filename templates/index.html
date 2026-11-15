@@ -83,9 +83,14 @@
                         <span class="pulse-dot"></span>
                         <span class="fw-semibold text-white">Live Edge AI Stream</span>
                     </div>
-                    <span class="badge bg-dark border border-secondary text-secondary small">
-                        YuNet + SFace (128D)
-                    </span>
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="btn btn-xs btn-outline-danger rounded-pill px-2 py-1" onclick="window.svClient.toggleCameraPower()" style="font-size: 0.75rem;" title="Toggle Camera Hardware">
+                            <i class="fa-solid fa-power-off me-1"></i> Camera Power
+                        </button>
+                        <span class="badge bg-dark border border-secondary text-secondary small">
+                            YuNet + SFace (128D)
+                        </span>
+                    </div>
                 </div>
                 <div class="p-3">
                     <div class="video-wrapper mb-3">

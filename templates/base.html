@@ -89,6 +89,14 @@
 
                 <!-- Right Side User & Status Controls -->
                 <div class="d-flex align-items-center gap-3">
+                    <!-- Camera Hardware Power ON/OFF Toggle -->
+                    <button id="globalCameraBtn" class="btn btn-sm {{ 'btn-outline-success' if camera_is_running else 'btn-outline-danger' }} rounded-pill px-3 d-flex align-items-center gap-1" onclick="window.svClient.toggleCameraPower()" title="{{ 'Camera is ON (Click to Stop & Free Hardware)' if camera_is_running else 'Camera is OFF (Webcam Free for Other Apps. Click to Turn ON)' }}" aria-label="Toggle Camera Hardware">
+                        <i id="cameraPowerIcon" class="fa-solid {{ 'fa-video text-success' if camera_is_running else 'fa-video-slash text-danger' }}"></i>
+                        <span id="cameraPowerLabel" class="d-none d-sm-inline small fw-semibold">
+                            {{ 'Camera ON' if camera_is_running else 'Camera OFF' }}
+                        </span>
+                    </button>
+
                     <!-- Audio Mute/Unmute Toggle -->
                     <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="window.svClient.toggleAudioMute()" title="Toggle Web Chime Audio" aria-label="Toggle web audio feedback">
                         <i id="audio-mute-icon" class="fa-solid fa-volume-high text-success" aria-hidden="true"></i>

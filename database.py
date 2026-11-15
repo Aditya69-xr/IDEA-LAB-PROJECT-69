@@ -193,7 +193,8 @@ def init_db():
         "classes_per_day": str(DEFAULT_CLASSES_PER_DAY),
         "min_required_pct": str(MINIMUM_REQUIRED_ATTENDANCE_PCT),
         "lab_min_required_pct": str(LAB_MINIMUM_REQUIRED_ATTENDANCE_PCT),
-        "duplicate_rule": "COOLDOWN"
+        "duplicate_rule": "COOLDOWN",
+        "camera_enabled": "0"
     }
     for key, val in defaults.items():
         cursor.execute("INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?);", (key, val))

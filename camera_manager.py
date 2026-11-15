@@ -30,11 +30,11 @@ class CameraManager:
         self.frame_index = 0
         self.is_camera_available = False
 
-        # Pre-initialize fallback frames
-        fallback = self._generate_fallback_frame()
-        self.latest_raw_frame = fallback
-        self.latest_annotated_frame = fallback
-        ret, buf = cv2.imencode('.jpg', fallback, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
+        # Pre-initialize fallback frames (Default: OFF)
+        off_frame = self._generate_off_frame()
+        self.latest_raw_frame = off_frame
+        self.latest_annotated_frame = off_frame
+        ret, buf = cv2.imencode('.jpg', off_frame, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
         self.latest_jpeg = buf.tobytes() if ret else None
 
     def reload_students(self):
@@ -47,19 +47,27 @@ class CameraManager:
             self.active_students = []
 
     def start(self):
-        """Starts background camera capture thread."""
+        """Starts background camera capture thread and claims webcam hardware."""
         if self.is_running:
             return
         self.is_running = True
         self.thread = threading.Thread(target=self._capture_worker, daemon=True)
         self.thread.start()
+        print("[CameraManager] Camera worker started.")
 
     def stop(self):
-        """Stops background capture and releases hardware."""
+        """Stops background capture and releases webcam hardware immediately."""
         self.is_running = False
         if self.thread and self.thread.is_alive():
-            self.thread.join(timeout=2.0)
+            self.thread.join(timeout=1.5)
         self._release_camera()
+        with self.lock:
+            off_frame = self._generate_off_frame()
+            self.latest_raw_frame = off_frame
+            self.latest_annotated_frame = off_frame
+            ret, buf = cv2.imencode('.jpg', off_frame, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
+            self.latest_jpeg = buf.tobytes() if ret else None
+        print("[CameraManager] Camera stopped. Webcam hardware completely released.")
 
     def change_camera(self, new_index):
         """Switches to another camera index."""
@@ -273,6 +281,32 @@ class CameraManager:
         cv2.putText(frame, info_str, (w - tw - 12, 20),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.42, (148, 163, 184), 1, cv2.LINE_AA)
 
+    def _generate_off_frame(self):
+        """Generates a clean standby graphic when camera hardware is turned off."""
+        frame = np.full((CAMERA_HEIGHT, CAMERA_WIDTH, 3), (248, 250, 252), dtype=np.uint8)
+        cx, cy = CAMERA_WIDTH // 2, CAMERA_HEIGHT // 2
+
+        # Draw circle target with red slash
+        cv2.circle(frame, (cx, cy - 35), 45, (226, 232, 240), -1)
+        cv2.circle(frame, (cx, cy - 35), 45, (239, 68, 68), 2)
+        cv2.line(frame, (cx - 24, cy - 59), (cx + 24, cy - 11), (239, 68, 68), 3)
+
+        text_title = "CAMERA TURNED OFF"
+        (tw, _), _ = cv2.getTextSize(text_title, cv2.FONT_HERSHEY_DUPLEX, 0.72, 2)
+        cv2.putText(frame, text_title, (cx - tw // 2, cy + 35),
+                    cv2.FONT_HERSHEY_DUPLEX, 0.72, (15, 23, 42), 2, cv2.LINE_AA)
+
+        text_sub = "Webcam hardware is released & free for your other apps."
+        (sw, _), _ = cv2.getTextSize(text_sub, cv2.FONT_HERSHEY_SIMPLEX, 0.45, 1)
+        cv2.putText(frame, text_sub, (cx - sw // 2, cy + 65),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.45, (100, 116, 139), 1, cv2.LINE_AA)
+
+        text_inst = "Click 'Camera ON' in website navigation to activate face scanning."
+        (iw, _), _ = cv2.getTextSize(text_inst, cv2.FONT_HERSHEY_SIMPLEX, 0.42, 1)
+        cv2.putText(frame, text_inst, (cx - iw // 2, cy + 92),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.42, (37, 99, 235), 1, cv2.LINE_AA)
+        return frame
+
     def _generate_fallback_frame(self):
         """Generates a stylish digital test card if camera device is missing or occupied."""
         frame = np.full((CAMERA_HEIGHT, CAMERA_WIDTH, 3), (20, 24, 33), dtype=np.uint8)
@@ -297,12 +331,16 @@ class CameraManager:
     def get_latest_jpeg(self):
         """Returns latest JPEG frame bytes for MJPEG streaming."""
         with self.lock:
+            if not self.is_running or self.latest_jpeg is None:
+                off_frame = self._generate_off_frame()
+                ret, buf = cv2.imencode('.jpg', off_frame, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
+                return buf.tobytes() if ret else None
             return self.latest_jpeg
 
     def get_snapshot(self):
         """Captures a snapshot frame for registration or snapshot archives."""
         with self.lock:
-            if self.latest_raw_frame is not None:
+            if self.is_running and self.latest_raw_frame is not None:
                 return self.latest_raw_frame.copy()
             return None
 

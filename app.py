@@ -43,15 +43,18 @@ database.init_db()
 # Auto-connect hardware bridge (simulation fallback if no physical board connected)
 arduino.connect("AUTO")
 
-# Start camera grabber thread
-camera_manager.start()
+# Camera hardware power control (Default: OFF to free webcam for other apps)
+if database.get_setting("camera_enabled", "0") == "1":
+    camera_manager.start()
+else:
+    print("[CameraManager] Camera is OFF by default. Hardware is free for other apps.")
 
 # Security Middleware: Security Headers
 @app.after_request
 def security_header_middleware(response):
     return apply_security_headers(response)
 
-# Inject current user into all Jinja templates
+# Inject current user & camera state into all Jinja templates
 @app.context_processor
 def inject_user_context():
     return {
@@ -59,6 +62,7 @@ def inject_user_context():
         "current_role": session.get("role"),
         "current_name": session.get("full_name"),
         "student_id": session.get("student_id"),
+        "camera_is_running": camera_manager.is_running,
         "year": datetime.datetime.now().year
     }
 
@@ -862,6 +866,42 @@ def api_live_events():
         "today_present": stats["today_present"],
         "turnout_pct": stats["turnout_pct"],
         "timestamp": datetime.datetime.now().strftime("%H:%M:%S")
+    })
+
+# ----------------- Camera Hardware Power Control API ----------------- #
+
+@app.route('/api/camera/status')
+def api_camera_status():
+    """Returns whether camera grabber is actively running."""
+    return jsonify({
+        "success": True,
+        "is_running": camera_manager.is_running,
+        "is_available": camera_manager.is_camera_available,
+        "camera_enabled": database.get_setting("camera_enabled", "0") == "1"
+    })
+
+@app.route('/api/camera/toggle', methods=['POST'])
+def api_camera_toggle():
+    """
+    Toggles camera grabber on/off on demand.
+    When turned OFF, immediately releases cv2.VideoCapture so other apps can access webcam.
+    """
+    action = sanitize_text(request.form.get('action', '')).lower()
+
+    if action == 'start' or (not action and not camera_manager.is_running):
+        database.set_setting("camera_enabled", "1")
+        camera_manager.start()
+        msg = "Camera turned ON. Live face detection activated."
+    else:
+        database.set_setting("camera_enabled", "0")
+        camera_manager.stop()
+        msg = "Camera turned OFF. Laptop webcam hardware is now free for your other applications."
+
+    return jsonify({
+        "success": True,
+        "is_running": camera_manager.is_running,
+        "camera_enabled": database.get_setting("camera_enabled", "0") == "1",
+        "message": msg
     })
 
 # ----------------- Hardware APIs (Admin Protected) ----------------- #
