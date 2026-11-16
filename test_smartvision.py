@@ -420,5 +420,37 @@ class TestSmartVision(unittest.TestCase):
             'status': 'NOT_MARKED'
         })
 
+    def test_12_pwa_and_android_mobile_readiness(self):
+        """
+        Verify Progressive Web App (PWA) manifest, service worker, mobile icons,
+        and Google Play Store privacy compliance endpoints.
+        """
+        client = app.test_client()
+
+        # 1. PWA Manifest
+        res_manifest = client.get('/static/manifest.json')
+        self.assertEqual(res_manifest.status_code, 200)
+        manifest_data = res_manifest.get_json()
+        self.assertIsNotNone(manifest_data)
+        self.assertEqual(manifest_data['short_name'], 'SmartVision')
+        self.assertEqual(manifest_data['display'], 'standalone')
+        self.assertEqual(manifest_data['theme_color'], '#ff4d4f')
+
+        # 2. Service Worker script
+        res_sw = client.get('/static/js/service-worker.js')
+        self.assertEqual(res_sw.status_code, 200)
+        self.assertIn(b'smartvision', res_sw.data)
+
+        # 3. App Icons
+        res_icon192 = client.get('/static/img/icons/icon-192.png')
+        self.assertEqual(res_icon192.status_code, 200)
+        res_icon512 = client.get('/static/img/icons/icon-512.png')
+        self.assertEqual(res_icon512.status_code, 200)
+
+        # 4. Play Store Mandatory Privacy Policy URL
+        res_priv = client.get('/privacy')
+        self.assertEqual(res_priv.status_code, 200)
+        self.assertIn(b'Privacy Policy', res_priv.data)
+
 if __name__ == '__main__':
     unittest.main()

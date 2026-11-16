@@ -1048,3 +1048,26 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     border-color: #94a3b8 !important;
     color: #ffffff !important;
 }
+
+/* Floating Android / Mobile PWA Installation Banner */
+.pwa-install-banner {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 92%;
+    max-width: 480px;
+    z-index: 2050;
+    animation: fadeInUp 0.4s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 20px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}

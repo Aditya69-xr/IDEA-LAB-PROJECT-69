@@ -17,6 +17,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- Progressive Web App (PWA) Android & iOS Mobile Specs -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#ff4d4f">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="SmartVision">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="SmartVision">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icons/icon-192.png') }}">
     {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -268,7 +278,65 @@
                 toast.show();
             }
         };
+
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/js/service-worker.js')
+                    .then(reg => console.log('[PWA] ServiceWorker active on scope:', reg.scope))
+                    .catch(err => console.debug('[PWA] ServiceWorker note:', err));
+            });
+        }
+
+        // PWA Native Installation Handler
+        let deferredPrompt;
+        const installBanner = document.getElementById('pwaInstallBanner');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            if (installBanner && !localStorage.getItem('pwa_installed')) {
+                installBanner.style.display = 'block';
+            }
+        });
+
+        function triggerPWAInstall() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        localStorage.setItem('pwa_installed', 'true');
+                    }
+                    if (installBanner) installBanner.style.display = 'none';
+                    deferredPrompt = null;
+                });
+            }
+        }
+
+        function dismissInstallBanner() {
+            if (installBanner) installBanner.style.display = 'none';
+            sessionStorage.setItem('dismissed_install_banner', 'true');
+        }
     </script>
+
+    <!-- Floating Android / Mobile PWA Installation Bottom Sheet -->
+    <div id="pwaInstallBanner" class="pwa-install-banner shadow-lg" style="display: none;">
+        <div class="d-flex align-items-center justify-content-between gap-3 p-3 bg-white rounded-4 border border-secondary-subtle">
+            <div class="d-flex align-items-center gap-3">
+                <img src="{{ url_for('static', filename='img/icons/icon-192.png') }}" alt="SmartVision Icon" class="rounded-3 shadow-sm" style="width: 48px; height: 48px;">
+                <div>
+                    <strong class="d-block text-dark fw-bold" style="font-size: 0.95rem;">Install SmartVision App</strong>
+                    <span class="text-secondary small">1-Tap DigiCampus Attendance on Android</span>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" onclick="triggerPWAInstall()" style="background-color: #ff4d4f; border-color: #ff4d4f;">
+                    <i class="fa-solid fa-download me-1"></i> Install
+                </button>
+                <button type="button" class="btn-close" onclick="dismissInstallBanner()" aria-label="Dismiss"></button>
+            </div>
+        </div>
+    </div>
     {% block extra_scripts %}{% endblock %}
 </body>
 </html>

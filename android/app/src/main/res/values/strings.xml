@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">SmartVision</string>
+    <string name="college_name">JIET Jodhpur</string>
+    <string name="lab_name">Idea Lab</string>
+    <string name="portal_subtitle">AI Attendance &amp; DigiCampus ERP</string>
+    <string name="error_offline">No internet connection. Please check your network and retry.</string>
+    <string name="btn_retry">Retry</string>
+</resources>

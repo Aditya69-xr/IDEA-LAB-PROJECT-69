@@ -1,0 +1,58 @@
+{
+  "name": "SmartVision: DigiCampus Idea Lab",
+  "short_name": "SmartVision",
+  "id": "in.ac.jietjodhpur.smartvision",
+  "description": "AI-Based Face Detection Attendance System & DigiCampus Academic Portal for Idea Lab (JIET).",
+  "start_url": "/student/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#ff4d4f",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "/static/img/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/img/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/img/icons/icon-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "My Attendance",
+      "short_name": "Attendance",
+      "description": "Check your IDEA Lab 2-slot attendance",
+      "url": "/student/dashboard?tab=drilldown",
+      "icons": [{ "src": "/static/img/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Current Term Academics",
+      "short_name": "Academics",
+      "description": "View semester courses and percentages",
+      "url": "/student/dashboard?tab=academics",
+      "icons": [{ "src": "/static/img/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Entrance Kiosk",
+      "short_name": "Kiosk",
+      "description": "Live AI attendance verification",
+      "url": "/live",
+      "icons": [{ "src": "/static/img/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

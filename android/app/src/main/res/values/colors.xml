@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary_coral">#ff4d4f</color>
+    <color name="primary_dark">#e02424</color>
+    <color name="background_white">#ffffff</color>
+    <color name="surface_card">#ffffff</color>
+    <color name="text_primary">#0f172a</color>
+    <color name="text_secondary">#475569</color>
+    <color name="success_green">#10b981</color>
+    <color name="danger_red">#ef4444</color>
+</resources>
