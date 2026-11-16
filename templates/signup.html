@@ -8,10 +8,10 @@
         <div class="col-lg-9 col-xl-8">
             <div class="sv-card p-4 p-md-5">
                 <div class="text-center mb-4">
-                    <div class="d-inline-flex align-items-center justify-content-center p-3 rounded-circle bg-dark border border-secondary mb-3 shadow">
+                    <div class="d-inline-flex align-items-center justify-content-center p-3 rounded-circle bg-light border border-secondary-subtle mb-3 shadow-sm">
                         <i class="fa-solid fa-camera-rotate text-primary fa-2x" aria-hidden="true"></i>
                     </div>
-                    <h3 class="fw-bold text-white mb-1">Create Account &amp; Enroll Face</h3>
+                    <h3 class="fw-bold text-dark mb-1">Create Account &amp; Enroll Face</h3>
                     <p class="text-secondary small">
                         First-time registration requires a one-time face biometric scan for automated attendance tracking at Idea Lab entrance.
                     </p>
@@ -19,7 +19,7 @@
 
                 <!-- Role Selector Tabs -->
                 <div class="d-flex justify-content-center mb-4">
-                    <div class="btn-group p-1 bg-dark rounded-pill border border-secondary" role="group">
+                    <div class="btn-group p-1 bg-light rounded-pill border border-secondary-subtle" role="group">
                         <button type="button" class="btn btn-sm rounded-pill px-4 btn-primary-custom" id="roleBtnStudent" onclick="switchSignupRole('student')">
                             <i class="fa-solid fa-user-graduate me-1"></i> Student Sign Up
                         </button>
@@ -38,7 +38,7 @@
                         <div class="col-md-6">
                             <label for="fullName" class="form-label text-secondary small fw-semibold">Full Name *</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-dark border-secondary text-secondary"><i class="fa-solid fa-user"></i></span>
+                                <span class="input-group-text bg-light border-secondary-subtle text-secondary"><i class="fa-solid fa-user"></i></span>
                                 <input type="text" class="form-control form-control-custom" id="fullName" name="name" placeholder="e.g. Aditya Jain" required>
                             </div>
                         </div>
@@ -46,7 +46,7 @@
                         <div class="col-md-6">
                             <label for="regEmail" class="form-label text-secondary small fw-semibold">Official College Email *</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-dark border-secondary text-secondary"><i class="fa-solid fa-envelope"></i></span>
+                                <span class="input-group-text bg-light border-secondary-subtle text-secondary"><i class="fa-solid fa-envelope"></i></span>
                                 <input type="email" class="form-control form-control-custom" id="regEmail" name="email" placeholder="e.g. name@jietjodhpur.ac.in" required>
                             </div>
                         </div>
@@ -54,7 +54,7 @@
                         <div class="col-md-6">
                             <label for="studentId" class="form-label text-secondary small fw-semibold" id="idLabel">Student Roll No. / ID *</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-dark border-secondary text-secondary"><i class="fa-solid fa-id-card"></i></span>
+                                <span class="input-group-text bg-light border-secondary-subtle text-secondary"><i class="fa-solid fa-id-card"></i></span>
                                 <input type="text" class="form-control form-control-custom" id="studentId" name="student_id" placeholder="e.g. 26AI3482" required>
                             </div>
                         </div>
@@ -75,7 +75,7 @@
                         <div class="col-md-12">
                             <label for="signupPassword" class="form-label text-secondary small fw-semibold">Create Password *</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-dark border-secondary text-secondary"><i class="fa-solid fa-lock"></i></span>
+                                <span class="input-group-text bg-light border-secondary-subtle text-secondary"><i class="fa-solid fa-lock"></i></span>
                                 <input type="password" class="form-control form-control-custom" id="signupPassword" name="password" placeholder="Minimum 6 characters" minlength="6" required>
                                 <button type="button" class="btn btn-outline-secondary" onclick="togglePasswordVisibility('signupPassword', 'signupEyeIcon')" aria-label="Toggle password visibility">
                                     <i id="signupEyeIcon" class="fa-solid fa-eye"></i>
@@ -86,10 +86,10 @@
                     </div>
 
                     <!-- Mandatory Face Biometric Scan Section -->
-                    <div class="p-3 bg-dark rounded-3 border border-secondary mb-4">
+                    <div class="p-3 bg-light rounded-3 border border-secondary-subtle mb-4">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <div>
-                                <h6 class="fw-bold text-white mb-0">
+                                <h6 class="fw-bold text-dark mb-0">
                                     <i class="fa-solid fa-camera text-primary me-2"></i> Mandatory Biometric Face Scan
                                 </h6>
                                 <small class="text-secondary">Face enrollment is mandatory during sign up for entrance camera attendance recognition.</small>
